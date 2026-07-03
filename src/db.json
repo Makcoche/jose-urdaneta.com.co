@@ -1,0 +1,263 @@
+{
+  "services": [
+    {
+      "id": "diseno-web",
+      "name": "Diseño Web Profesional",
+      "description": "Sitios web premium a medida con experiencia de usuario optimizada, velocidad ultra rápida y diseño vanguardista.",
+      "category": "Desarrollo",
+      "icon": "Globe",
+      "featured": true
+    },
+    {
+      "id": "ecommerce",
+      "name": "Tiendas Virtuales (E-commerce)",
+      "description": "Plataformas de comercio electrónico escalables, pasarelas de pago seguras y flujos de compra sin fricciones.",
+      "category": "Desarrollo",
+      "icon": "ShoppingBag",
+      "featured": true
+    },
+    {
+      "id": "landing-pages",
+      "name": "Landing Pages de Alta Conversión",
+      "description": "Páginas de aterrizaje enfocadas a un único objetivo: convertir visitantes en leads cualificados y ventas.",
+      "category": "Desarrollo",
+      "icon": "Zap",
+      "featured": true
+    },
+    {
+      "id": "diseno-ux-ui",
+      "name": "Diseño UX/UI",
+      "description": "Interfaces elegantes e intuitivas basadas en la psicología del usuario para maximizar el engagement.",
+      "category": "Diseño",
+      "icon": "Layout",
+      "featured": false
+    },
+    {
+      "id": "auto-whatsapp",
+      "name": "Automatización de WhatsApp",
+      "description": "Sistemas de automatización y embudos que atienden, cualifican y venden por ti en WhatsApp 24/7.",
+      "category": "Automatizacion",
+      "icon": "MessageSquareText",
+      "featured": true
+    },
+    {
+      "id": "chatbots-ia",
+      "name": "Chatbots con Inteligencia Artificial",
+      "description": "Asistentes de IA contextuales entrenados con tu información que responden dudas complejas y cierran citas.",
+      "category": "Automatizacion",
+      "icon": "Cpu",
+      "featured": true
+    },
+    {
+      "id": "auto-negocios",
+      "name": "Automatización de Procesos",
+      "description": "Sincronización de CRM, ERP y herramientas internas para eliminar tareas repetitivas en tu negocio.",
+      "category": "Automatizacion",
+      "icon": "Shuffle",
+      "featured": false
+    },
+    {
+      "id": "redes-sociales",
+      "name": "Gestión de Redes Sociales",
+      "description": "Estrategias de contenido orgánico e historias de impacto que construyen una comunidad fiel en torno a tu marca.",
+      "category": "Marketing",
+      "icon": "Share2",
+      "featured": false
+    },
+    {
+      "id": "diseno-branding",
+      "name": "Branding & Diseño Gráfico",
+      "description": "Identidades visuales memorables, logotipos premium, tipografías y paletas que comunican lujo e innovación.",
+      "category": "Diseño",
+      "icon": "Palette",
+      "featured": false
+    },
+    {
+      "id": "seo",
+      "name": "SEO Posicionamiento Orgánico",
+      "description": "Optimización técnica y de contenidos para liderar los resultados de búsqueda en Google sin pagar por anuncios.",
+      "category": "Marketing",
+      "icon": "Search",
+      "featured": true
+    },
+    {
+      "id": "google-ads",
+      "name": "Google Ads",
+      "description": "Campañas de búsqueda y Display altamente segmentadas orientadas a capturar la demanda activa de tu mercado.",
+      "category": "Marketing",
+      "icon": "TrendingUp",
+      "featured": false
+    },
+    {
+      "id": "facebook-ads",
+      "name": "Facebook & Instagram Ads",
+      "description": "Embudo de prospección y retargeting visualmente impresionante para generar volumen constante de leads.",
+      "category": "Marketing",
+      "icon": "Compass",
+      "featured": false
+    },
+    {
+      "id": "hosting-premium",
+      "name": "Hosting & Infraestructura Cloud",
+      "description": "Servidores de alta velocidad con redundancia, SSL gratis, copias de seguridad diarias y soporte dedicado.",
+      "category": "Soporte",
+      "icon": "Server",
+      "featured": false
+    },
+    {
+      "id": "dominios-correos",
+      "name": "Dominios & Correos Corporativos",
+      "description": "Configuración y gestión de dominios premium y correos profesionales con suite colaborativa integrada.",
+      "category": "Soporte",
+      "icon": "Mail",
+      "featured": false
+    },
+    {
+      "id": "desarrollo-software",
+      "name": "Desarrollo de Software & CRM",
+      "description": "Aplicaciones a medida y sistemas CRM adaptados al flujo exacto de tu fuerza de ventas y operaciones.",
+      "category": "Desarrollo",
+      "icon": "Code",
+      "featured": false
+    }
+  ],
+  "portfolio": [
+    {
+      "id": "1",
+      "title": "Aura Luxury Residences",
+      "client": "Aura Developments S.A.",
+      "description": "Plataforma inmobiliaria premium interactiva con renders 3D de alta velocidad, experiencia inmersiva de selección de departamentos y recorrido virtual automatizado.",
+      "technologies": ["React", "Framer Motion", "TailwindCSS", "WebGL"],
+      "result": "Aumento del 180% en solicitudes de tours virtuales y $4.2M USD en preventas generadas de forma 100% digital.",
+      "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+      "link": "https://aura-luxury.example.com",
+      "featured": true
+    },
+    {
+      "id": "2",
+      "title": "Veloce Specialty Coffee",
+      "client": "Veloce Coffee Roasters",
+      "description": "Tienda virtual (E-commerce) de café de especialidad con un flujo de compra de un solo clic, sistema de suscripción mensual inteligente y panel de cliente personalizado.",
+      "technologies": ["React", "Node.js", "Express", "TailwindCSS", "Stripe"],
+      "result": "Incremento de 42% en el valor promedio de orden (AOV) y 1,500+ suscriptores recurrentes activos en los primeros 3 meses.",
+      "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80",
+      "link": "https://veloce-coffee.example.com",
+      "featured": true
+    },
+    {
+      "id": "3",
+      "title": "Omnia CRM & WhatsApp Automation",
+      "client": "Omnia Logistics",
+      "description": "Desarrollo de CRM a medida integrado con automatización de WhatsApp e Inteligencia Artificial para atención y agendamiento automático de envíos internacionales.",
+      "technologies": ["React", "Express", "Gemini AI API", "WhatsApp Cloud API"],
+      "result": "Reducción del 75% en el tiempo de cotización y atención automática de 20,000+ chats semanales sin intervención humana.",
+      "image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80",
+      "link": "https://omnia-logistics.example.com",
+      "featured": true
+    },
+    {
+      "id": "4",
+      "title": "Synthetix AI Education Platform",
+      "client": "Instituto Tecnológico Synthetix",
+      "description": "Plataforma web educativa gamificada enfocada en cursos de programación y diseño web, con tutores inteligentes basados en inteligencia artificial.",
+      "technologies": ["React", "Framer Motion", "TailwindCSS", "Gemini Pro API"],
+      "result": "Tasa de finalización de cursos incrementada del 12% al 68%, y calificación promedio de 4.9/5 estrellas.",
+      "image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
+      "link": "https://synthetix.example.com",
+      "featured": false
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "1",
+      "name": "Carlos Mendoza",
+      "role": "Director de Marketing",
+      "company": "Aura Developments S.A.",
+      "content": "Trabajar con Jose Urdaneta transformó nuestra manera de vender. La web inmobiliaria que diseñó no solo es una obra de arte visual, sino una máquina de generación de clientes cualificados. Su automatización de WhatsApp atiende al instante y filtra de manera inteligente a los prospectos.",
+      "stars": 5,
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&h=120&q=80"
+    },
+    {
+      "id": "2",
+      "name": "Sofía Rostova",
+      "role": "Fundadora",
+      "company": "Veloce Coffee Roasters",
+      "content": "El e-commerce superó con creces nuestras expectativas. La experiencia móvil es tan fluida que nuestros clientes recurrentes compran café en menos de 10 segundos. El sistema de suscripciones funciona en piloto automático y ha dado una tremenda estabilidad financiera a nuestra cafetería.",
+      "stars": 5,
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80"
+    },
+    {
+      "id": "3",
+      "name": "Alejandro Ruiz",
+      "role": "Gerente de Operaciones",
+      "company": "Omnia Logistics",
+      "content": "La integración de la Inteligencia Artificial de Gemini con WhatsApp redujo dramáticamente nuestros costos operativos. El bot entiende perfectamente consultas complejas y actualiza el CRM en tiempo real. ¡El retorno de inversión (ROI) fue inmediato!",
+      "stars": 5,
+      "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=120&h=120&q=80"
+    }
+  ],
+  "blog": [
+    {
+      "id": "1",
+      "title": "El impacto de la Inteligencia Artificial en el Diseño Web moderno",
+      "excerpt": "Cómo los chatbots inteligentes y el diseño guiado por IA están redefiniendo las tasas de conversión y las expectativas de los usuarios.",
+      "content": "El diseño web ha evolucionado más allá de la simple estética visual. Hoy en día, la incorporación de inteligencia artificial en las interfaces de usuario (UI) permite ofrecer experiencias personalizadas en tiempo real. Descubre cómo los asistentes virtuales conversacionales entrenados con LLM pueden guiar a tus visitantes de manera hiper-personalizada...",
+      "category": "IA",
+      "readTime": "5 min",
+      "date": "2026-06-28",
+      "image": "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "2",
+      "title": "Estrategias de SEO técnico para e-commerce en 2026",
+      "excerpt": "Las claves esenciales para lograr velocidades de carga inferiores a un segundo y escalar en las posiciones de búsqueda de Google.",
+      "content": "El posicionamiento orgánico en motores de búsqueda (SEO) requiere un enfoque técnico sólido. Para plataformas de comercio electrónico, cada milisegundo cuenta. Optimizar el renderizado del lado del servidor, el enrutado dinámico, la compresión de imágenes y estructurar la jerarquía de contenidos es crucial para convencer tanto al algoritmo de Google como a tus clientes de realizar transacciones inmediatas.",
+      "category": "SEO",
+      "readTime": "8 min",
+      "date": "2026-06-15",
+      "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "3",
+      "title": "Cómo automatizar el 80% de las consultas de ventas por WhatsApp",
+      "excerpt": "Descubre el flujo visual definitivo para conectar WhatsApp, CRM e Inteligencia Artificial y cerrar ventas mientras duermes.",
+      "content": "WhatsApp se ha convertido en el canal de ventas más eficiente del mercado latinoamericano y global. Sin embargo, atender cientos de chats manualmente es insostenible. En este artículo detallamos paso a paso cómo estructurar un flujo automatizado que salude, cualifique el presupuesto del cliente, recomiende planes ideales y registre el lead en tu CRM de forma inmediata.",
+      "category": "Marketing",
+      "readTime": "6 min",
+      "date": "2026-05-30",
+      "image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80"
+    }
+  ],
+  "formSubmissions": [],
+  "socialPosts": [
+    {
+      "id": "1",
+      "platform": "Instagram",
+      "caption": "🔥 El diseño web no se trata solo de que se vea bien, sino de que venda. En Jose Urdaneta creamos experiencias de usuario premium basadas en conversión (CRO). Mira este renderizado interactivo en 3D que desarrollamos para Aura Residences. #DiseñoWeb #UIUX #Framer #Premium",
+      "likes": "1,245",
+      "comments": "89",
+      "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80"
+    },
+    {
+      "id": "2",
+      "platform": "TikTok",
+      "caption": "⚡️ ¿Cansado de responder los mismos mensajes por WhatsApp todo el día? Automatizamos tu embudo de ventas conectando Inteligencia Artificial con tu CRM en tiempo real. ¡Deja que tu negocio trabaje por ti! Link en Bio ↗️ #WhatsAppBot #InteligenciaArtificial #Automatizacion #Negocios",
+      "likes": "8,920",
+      "comments": "412",
+      "image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=500&q=80"
+    },
+    {
+      "id": "3",
+      "platform": "LinkedIn",
+      "caption": "💼 El verdadero lujo en el software corporativo es la fluidez de sus procesos. Implementar chatbots cognitivos y CRM adaptativos reduce costes en más de un 60%. Nos especializamos en potenciar el Core de tu marca y transformarlo en valor duradero. #B2B #CRM #Desarrollo #IA #Lujo",
+      "likes": "680",
+      "comments": "54",
+      "image": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=500&q=80"
+    }
+  ],
+  "seoSettings": {
+    "title": "JOSE URDANETA | Diseño Web, Automatización y Marketing Digital Premium",
+    "description": "Creamos páginas web que venden. Agencia de diseño digital de lujo y automatizaciones de negocios con Inteligencia Artificial. Eleva tu marca al siguiente nivel.",
+    "keywords": "diseño web profesional, e-commerce, automatización whatsapp, chatbots inteligencia artificial, seo, google ads, branding de lujo, Jose Urdaneta"
+  }
+}
