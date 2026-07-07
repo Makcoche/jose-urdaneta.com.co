@@ -66,6 +66,40 @@ export interface SEOSettings {
   keywords: string;
 }
 
+export interface Lesson {
+  id: string;
+  title: string;
+  duration: string;
+  videoUrl?: string;
+  description?: string;
+}
+
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  level: "Principiante" | "Intermedio" | "Avanzado";
+  lessonsCount: number;
+  image: string;
+  price: string;
+  lessons: Lesson[];
+  instructor?: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: "student" | "admin";
+  activeMembership: {
+    level: "Principiante" | "Intermedio" | "Avanzado" | null;
+    expiresAt: string | null;
+  };
+  completedLessons: string[];
+  createdAt: string;
+}
+
 export interface Database {
   services: Service[];
   portfolio: Project[];
@@ -74,4 +108,6 @@ export interface Database {
   formSubmissions: FormSubmission[];
   socialPosts: SocialPost[];
   seoSettings: SEOSettings;
+  courses?: Course[];
+  users?: User[];
 }

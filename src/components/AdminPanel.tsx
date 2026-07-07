@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X, Lock, ShieldCheck, LayoutDashboard, Briefcase, Wrench, MessageSquare,
-  BookOpen, Settings, Plus, Trash2, Edit, Save, Trash, AlertCircle, Copy, CheckCircle2, FileText
+  BookOpen, Settings, Plus, Trash2, Edit, Save, Trash, AlertCircle, Copy, CheckCircle2, FileText, Users, Eye
 } from "lucide-react";
-import { Service, Project, Testimonial, BlogPost, SocialPost, SEOSettings } from "../types";
+import { Service, Project, Testimonial, BlogPost, SocialPost, SEOSettings, Course, Lesson } from "../types";
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -15,6 +15,7 @@ interface AdminPanelProps {
     blog: BlogPost[];
     socialPosts: SocialPost[];
     seoSettings: SEOSettings;
+    courses?: Course[];
   };
   onDataUpdate: () => void; // Trigger page re-fetch
 }
@@ -23,7 +24,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "portfolio" | "contact" | "testimonials" | "blog" | "seo">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "portfolio" | "contact" | "testimonials" | "blog" | "courses" | "seo" | "users">("dashboard");
 
   // Local CRUD states synced from initialData
   const [services, setServices] = useState<Service[]>(initialData.services);
@@ -31,15 +32,19 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
   const [testimonials, setTestimonials] = useState<Testimonial[]>(initialData.testimonials);
   const [blog, setBlog] = useState<BlogPost[]>(initialData.blog);
   const [seo, setSeo] = useState<SEOSettings>(initialData.seoSettings);
+  const [courses, setCourses] = useState<Course[]>(initialData.courses || []);
 
   // Form submissions from server
   const [submissions, setSubmissions] = useState<any[]>([]);
+  const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
+  const [selectedVoucherImg, setSelectedVoucherImg] = useState<string | null>(null);
 
   // Editing items states
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
   // Saving state indicator
   const [isSaving, setIsSaving] = useState(false);
@@ -48,6 +53,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
   useEffect(() => {
     if (isAuthenticated) {
       fetchSubmissions();
+      fetchRegisteredUsers();
     }
   }, [isAuthenticated]);
 
@@ -60,6 +66,18 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
       }
     } catch (err) {
       console.error("Error fetching submissions:", err);
+    }
+  };
+
+  const fetchRegisteredUsers = async () => {
+    try {
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        const data = await res.json();
+        setRegisteredUsers(data);
+      }
+    } catch (err) {
+      console.error("Error fetching registered users:", err);
     }
   };
 
@@ -196,7 +214,36 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
     handleSaveData("blog", updatedList);
   };
 
-  // 5. SUBMISSIONS DELETION
+  // 4b. COURSES CRUD
+  const handleSaveCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCourse) return;
+
+    let updatedList;
+    const preparedCourse = {
+      ...editingCourse,
+      lessonsCount: editingCourse.lessons?.length || 0
+    };
+
+    if (courses.some(c => c.id === preparedCourse.id)) {
+      updatedList = courses.map(c => c.id === preparedCourse.id ? preparedCourse : c);
+    } else {
+      updatedList = [...courses, preparedCourse];
+    }
+
+    setCourses(updatedList);
+    handleSaveData("courses", updatedList);
+    setEditingCourse(null);
+  };
+
+  const handleDeleteCourse = (id: string) => {
+    if (!confirm("¿Seguro que deseas eliminar este curso de la academia?")) return;
+    const updatedList = courses.filter(c => c.id !== id);
+    setCourses(updatedList);
+    handleSaveData("courses", updatedList);
+  };
+
+  // 5. SUBMISSIONS DELETION & PAYMENT APPROVAL
   const handleDeleteSubmission = async (id: string) => {
     if (!confirm("¿Seguro que deseas borrar este lead del historial?")) return;
     try {
@@ -207,6 +254,43 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
       }
     } catch (err) {
       showToast("Error de comunicación");
+    }
+  };
+
+  const handleApproveSubmission = async (id: string) => {
+    if (!confirm("¿Seguro que deseas APROBAR este pago? Se activará la membresía del alumno de manera inmediata.")) return;
+    try {
+      const response = await fetch(`/api/admin/submissions/${id}/approve`, { method: "POST" });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSubmissions(submissions.map(s => s.id === id ? data.submission : s));
+          showToast("Pago aprobado con éxito y membresía activada");
+          fetchRegisteredUsers();
+        }
+      } else {
+        showToast("Error al aprobar el pago");
+      }
+    } catch (err) {
+      showToast("Error de conexión");
+    }
+  };
+
+  const handleRejectSubmission = async (id: string) => {
+    if (!confirm("¿Seguro que deseas RECHAZAR este pago?")) return;
+    try {
+      const response = await fetch(`/api/admin/submissions/${id}/reject`, { method: "POST" });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSubmissions(submissions.map(s => s.id === id ? data.submission : s));
+          showToast("Solicitud rechazada con éxito");
+        }
+      } else {
+        showToast("Error al rechazar la solicitud");
+      }
+    } catch (err) {
+      showToast("Error de conexión");
     }
   };
 
@@ -317,8 +401,10 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
               <nav className="space-y-1.5">
                 {[
                   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+                  { id: "users", label: "Alumnos y Membresías", icon: Users, count: registeredUsers.length },
                   { id: "services", label: "Servicios (CRUD)", icon: Wrench },
                   { id: "portfolio", label: "Portafolio (CRUD)", icon: Briefcase },
+                  { id: "courses", label: "Cursos (LMS)", icon: BookOpen },
                   { id: "contact", label: "Leads de Contacto", icon: FileText, count: submissions.length },
                   { id: "testimonials", label: "Testimonios (CRUD)", icon: MessageSquare },
                   { id: "blog", label: "Blog de Contenidos", icon: BookOpen },
@@ -337,6 +423,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                         setEditingProject(null);
                         setEditingTestimonial(null);
                         setEditingBlog(null);
+                        setEditingCourse(null);
                       }}
                       className={`w-full px-3.5 py-3 rounded-xl flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
                         isActive
@@ -375,22 +462,26 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                     <p className="text-gray-500 font-light text-sm mt-1">Resumen general de las métricas comerciales y conversiones.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-                    <div className="p-6 bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-gray-800 rounded-2xl">
-                      <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">Servicios Registrados</span>
-                      <span className="block font-display font-bold text-3xl mt-2 text-black dark:text-white">{services.length}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                    <div className="p-4 bg-gray-50 dark:bg-[#051a1b]/40 border border-gray-100 dark:border-white/5 rounded-2xl">
+                      <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wide">Servicios</span>
+                      <span className="block font-display font-bold text-2xl mt-1 text-black dark:text-white">{services.length}</span>
                     </div>
-                    <div className="p-6 bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-gray-800 rounded-2xl">
-                      <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">Casos de Éxito</span>
-                      <span className="block font-display font-bold text-3xl mt-2 text-black dark:text-white">{portfolio.length}</span>
+                    <div className="p-4 bg-gray-50 dark:bg-[#051a1b]/40 border border-gray-100 dark:border-white/5 rounded-2xl">
+                      <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wide">Casos de Éxito</span>
+                      <span className="block font-display font-bold text-2xl mt-1 text-black dark:text-white">{portfolio.length}</span>
                     </div>
-                    <div className="p-6 bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-gray-800 rounded-2xl">
-                      <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">Leads Captados (Mensajes)</span>
-                      <span className="block font-display font-bold text-3xl mt-2 text-primary dark:text-secondary">{submissions.length}</span>
+                    <div className="p-4 bg-gray-50 dark:bg-[#051a1b]/40 border border-gray-100 dark:border-white/5 rounded-2xl">
+                      <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wide font-bold text-primary dark:text-secondary">Leads (Consultas)</span>
+                      <span className="block font-display font-bold text-2xl mt-1 text-primary dark:text-secondary">{submissions.length}</span>
                     </div>
-                    <div className="p-6 bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-gray-800 rounded-2xl">
-                      <span className="text-xs text-gray-400 font-mono uppercase tracking-wide">Artículos de Blog</span>
-                      <span className="block font-display font-bold text-3xl mt-2 text-black dark:text-white">{blog.length}</span>
+                    <div className="p-4 bg-gray-50 dark:bg-[#051a1b]/40 border border-gray-100 dark:border-white/5 rounded-2xl">
+                      <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wide">Artículos Blog</span>
+                      <span className="block font-display font-bold text-2xl mt-1 text-black dark:text-white">{blog.length}</span>
+                    </div>
+                    <div className="p-4 bg-gray-50 dark:bg-[#051a1b]/40 border border-gray-100 dark:border-white/5 rounded-2xl">
+                      <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wide font-bold text-secondary">Cursos LMS</span>
+                      <span className="block font-display font-bold text-2xl mt-1 text-[#F4B400]">{courses.length}</span>
                     </div>
                   </div>
 
@@ -400,6 +491,198 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                       Este panel sincroniza todos los cambios directamente al archivo local <span className="font-mono bg-white dark:bg-neutral-950 px-1.5 py-0.5 rounded border">src/db.json</span> de tu servidor. Cualquier modificación realizada aquí modificará los datos de la web en tiempo real sin requerir recompilación del backend.
                     </p>
                   </div>
+                </div>
+              )}
+
+              {/* Users & Memberships Tab */}
+              {activeTab === "users" && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 dark:border-gray-800 pb-4 gap-4">
+                    <div>
+                      <h2 className="font-display font-extrabold text-2xl text-black dark:text-white">Alumnos y Membresías</h2>
+                      <p className="text-gray-500 font-light text-sm mt-1">
+                        Controla las cuentas de alumnos, sus lecciones completadas y sus niveles de suscripción de pago (Nequi / Bancolombia / Stripe).
+                      </p>
+                    </div>
+                    <button
+                      onClick={fetchRegisteredUsers}
+                      className="px-4 py-2 self-start rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-black dark:text-white font-mono text-xs font-bold uppercase transition-colors"
+                    >
+                      Actualizar Alumnos
+                    </button>
+                  </div>
+
+                  <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-3">
+                    <ShieldCheck className="text-emerald-500 shrink-0 mt-0.5" size={18} />
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold font-sans text-emerald-800 dark:text-emerald-400">Asignación de Registros y Accesos Gratuitos</h4>
+                      <p className="text-[11px] text-gray-500 dark:text-emerald-300/70 leading-relaxed">
+                        Como administrador, tú decides quiénes tienen acceso gratis y quiénes deben pagar. Utiliza los botones de nivel de la tabla inferior para otorgar membresías de forma 100% gratuita a los alumnos que tú elijas. Esto activa su acceso al aula virtual de forma inmediata sin que tengan que realizar transferencias.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Users Table */}
+                  {registeredUsers.length === 0 ? (
+                    <div className="text-center py-16 bg-gray-50 dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-white/10">
+                      <Users size={48} className="mx-auto mb-4 text-gray-400" />
+                      <p className="text-gray-500 dark:text-white/50 text-sm">No hay alumnos registrados en la plataforma.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-black/10">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50 dark:bg-black/30 border-b border-gray-100 dark:border-white/5 text-[10px] font-mono uppercase tracking-wider text-gray-400">
+                            <th className="p-4">Alumno</th>
+                            <th className="p-4">Contacto</th>
+                            <th className="p-4">Membresía Activa</th>
+                            <th className="p-4 text-center">Progreso (Clases)</th>
+                            <th className="p-4 text-right">Acciones de Suscripción (Nequi/Bancolombia)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-xs text-gray-700 dark:text-gray-300">
+                          {registeredUsers.map((u: any) => {
+                            const isUserAdmin = u.role === "admin";
+                            const level = u.activeMembership?.level;
+                            
+                            // Color badge for memberships
+                            let badgeColor = "bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-400";
+                            if (level === "Principiante") badgeColor = "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+                            else if (level === "Intermedio") badgeColor = "bg-[#0E5A5E]/15 text-primary dark:text-secondary dark:bg-[#0E5A5E]/30";
+                            else if (level === "Avanzado") badgeColor = "bg-[#F4B400]/15 text-amber-700 dark:text-[#F4B400] dark:bg-[#F4B400]/25";
+
+                            const changeMembership = async (newLevel: string | null) => {
+                              try {
+                                const res = await fetch(`/api/admin/users/${u.id}/membership`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ level: newLevel })
+                                });
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  if (data.success) {
+                                    showToast(`Membresía de ${u.name} actualizada con éxito`);
+                                    // Update locally
+                                    setRegisteredUsers(prev => prev.map(item => item.id === u.id ? data.user : item));
+                                  }
+                                } else {
+                                  showToast("Error al actualizar la membresía");
+                                }
+                              } catch (err) {
+                                showToast("Error de conexión");
+                              }
+                            };
+
+                            const toggleRole = async () => {
+                              try {
+                                const newRole = isUserAdmin ? "student" : "admin";
+                                const res = await fetch(`/api/admin/users/${u.id}/role`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ role: newRole })
+                                });
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  if (data.success) {
+                                    showToast(`Rol de ${u.name} actualizado a ${newRole === "admin" ? "Administrador" : "Alumno"}`);
+                                    setRegisteredUsers(prev => prev.map(item => item.id === u.id ? data.user : item));
+                                  }
+                                } else {
+                                  showToast("Error al cambiar el rol");
+                                }
+                              } catch (err) {
+                                showToast("Error de conexión");
+                              }
+                            };
+
+                            return (
+                              <tr key={u.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                                <td className="p-4">
+                                  <div className="font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
+                                    <span>{u.name}</span>
+                                    <button
+                                      onClick={toggleRole}
+                                      className={`px-2 py-0.5 rounded-lg text-[9px] font-mono font-bold tracking-wide uppercase cursor-pointer transition-all ${
+                                        isUserAdmin
+                                          ? "bg-[#F4B400] hover:bg-red-500 hover:text-white text-black"
+                                          : "bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-500"
+                                      }`}
+                                      title={isUserAdmin ? "Haz clic para cambiar a Alumno" : "Haz clic para hacer Administrador"}
+                                    >
+                                      {isUserAdmin ? "ADMINISTRADOR" : "HACER ADMIN"}
+                                    </button>
+                                  </div>
+                                  <div className="text-[10px] font-mono text-gray-400 mt-0.5">ID: {u.id}</div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="font-mono text-gray-900 dark:text-gray-200">{u.email}</div>
+                                  <div className="text-[10px] text-gray-400 mt-0.5">Registrado: {new Date(u.createdAt).toLocaleDateString()}</div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex flex-col items-start gap-1">
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${badgeColor}`}>
+                                      {level ? `Nivel ${level}` : "Sin suscripción activa"}
+                                    </span>
+                                    {level && u.activeMembership?.expiresAt && (
+                                      <span className="text-[9px] font-mono text-gray-400">
+                                        Expira: {new Date(u.activeMembership.expiresAt).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-4 text-center">
+                                  <span className="font-mono font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-white/5 px-2.5 py-1 rounded-lg">
+                                    {u.completedLessons?.length || 0} completadas
+                                  </span>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                    <button
+                                      onClick={() => changeMembership(null)}
+                                      className="px-2 py-1.5 rounded-lg border border-gray-100 hover:bg-gray-100 dark:border-white/5 dark:hover:bg-white/10 text-[10px] font-mono font-bold uppercase text-gray-500"
+                                      title="Quitar membresía"
+                                    >
+                                      Remover
+                                    </button>
+                                    <button
+                                      onClick={() => changeMembership("Principiante")}
+                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase ${
+                                        level === "Principiante"
+                                          ? "bg-blue-600 text-white"
+                                          : "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
+                                      }`}
+                                    >
+                                      Principiante
+                                    </button>
+                                    <button
+                                      onClick={() => changeMembership("Intermedio")}
+                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase ${
+                                        level === "Intermedio"
+                                          ? "bg-[#0E5A5E] text-white"
+                                          : "bg-[#0E5A5E]/10 text-[#0E5A5E] hover:bg-[#0E5A5E]/20"
+                                      }`}
+                                    >
+                                      Intermedio
+                                    </button>
+                                    <button
+                                      onClick={() => changeMembership("Avanzado")}
+                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase ${
+                                        level === "Avanzado"
+                                          ? "bg-[#F4B400] text-black"
+                                          : "bg-[#F4B400]/10 text-[#F4B400] hover:bg-[#F4B400]/20"
+                                      }`}
+                                    >
+                                      Avanzado
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -554,62 +837,176 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
               {activeTab === "contact" && (
                 <div className="space-y-6">
                   <div className="border-b border-gray-100 dark:border-gray-800 pb-4">
-                    <h2 className="font-display font-extrabold text-2xl text-black dark:text-white">Leads Captados (Mensajes en tiempo real)</h2>
-                    <p className="text-gray-500 font-light text-sm mt-1">Consultas y solicitudes de cotización enviadas por posibles clientes.</p>
+                    <h2 className="font-display font-extrabold text-2xl text-black dark:text-white">Leads Captados y Solicitudes</h2>
+                    <p className="text-gray-500 font-light text-sm mt-1">Sincroniza y aprueba transferencias manuales (Nequi/Bancolombia) y mensajes de contacto.</p>
                   </div>
 
                   {submissions.length === 0 ? (
                     <div className="py-12 text-center text-gray-400 font-mono text-xs">
-                      No se han recibido consultas comerciales por el momento.
+                      No se han recibido consultas comerciales ni solicitudes por el momento.
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {submissions.map((sub: any) => (
-                        <div key={sub.id} className="p-6 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-neutral-950 flex flex-col justify-between gap-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800/40 pb-3">
-                            <div>
-                              <span className="font-heading font-extrabold text-base text-black dark:text-white block">{sub.name}</span>
-                              <span className="text-xs text-gray-400 font-mono">Empresa: {sub.company}</span>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-[10px] font-mono bg-primary/10 text-primary dark:text-secondary px-2.5 py-1 rounded">
-                                {sub.service}
-                              </span>
-                              <span className="block text-[9px] text-gray-400 font-mono mt-1">
-                                {new Date(sub.date).toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
+                    <div className="space-y-8">
+                      {/* Section 1: Membership Payment Approvals */}
+                      {submissions.some((sub: any) => sub.isPaymentRequest) && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-mono font-bold text-[#F4B400] uppercase tracking-wider flex items-center gap-2">
+                            <ShieldCheck size={16} /> Solicitudes de Matrícula y Pago (Transferencia Bancaria)
+                          </h3>
+                          <div className="grid grid-cols-1 gap-4">
+                            {submissions
+                              .filter((sub: any) => sub.isPaymentRequest)
+                              .map((sub: any) => {
+                                const status = sub.status || "pending";
+                                let statusBadgeColor = "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/30";
+                                let statusText = "Pendiente de Validación";
+                                if (status === "approved") {
+                                  statusBadgeColor = "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-900/30";
+                                  statusText = "Aprobado y Activo";
+                                } else if (status === "rejected") {
+                                  statusBadgeColor = "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/30";
+                                  statusText = "Rechazado";
+                                }
 
-                          <div className="space-y-2">
-                            <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap font-light">{sub.message}</p>
-                            <div className="flex flex-wrap gap-4 text-xs font-mono pt-2 text-gray-400">
-                              <span>Email: <a href={`mailto:${sub.email}`} className="text-primary hover:underline">{sub.email}</a></span>
-                              {sub.phone && sub.phone !== "N/A" && (
-                                <span>WhatsApp: <a href={`https://wa.me/${sub.phone.replace(/\+/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{sub.phone}</a></span>
-                              )}
-                            </div>
-                          </div>
+                                return (
+                                  <div key={sub.id} className={`p-6 border rounded-2xl bg-white dark:bg-neutral-950 shadow-sm flex flex-col justify-between gap-4 transition-all ${
+                                    status === "pending" ? "border-amber-300 dark:border-amber-500/20 shadow-amber-500/5" : "border-gray-100 dark:border-gray-800"
+                                  }`}>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800/40 pb-3">
+                                      <div>
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-heading font-extrabold text-base text-black dark:text-white block">{sub.name}</span>
+                                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusBadgeColor}`}>
+                                            {statusText}
+                                          </span>
+                                        </div>
+                                        <span className="text-xs text-gray-400 font-mono">Plan solicitado: <strong className="text-primary dark:text-secondary">{sub.requestedLevel}</strong> | Voucher: <code className="bg-gray-100 dark:bg-white/5 px-1.5 py-0.5 rounded font-bold">{sub.voucher || "Sin Comprobante"}</code></span>
+                                        
+                                        {sub.voucherImage && (
+                                          <div className="mt-2.5 flex items-center gap-2">
+                                            <span className="text-[10px] text-gray-400 font-mono uppercase font-bold">Comprobante PC:</span>
+                                            <button
+                                              onClick={() => setSelectedVoucherImg(sub.voucherImage)}
+                                              className="px-2 py-1 bg-primary/10 hover:bg-primary/20 dark:bg-[#F4B400]/10 dark:hover:bg-[#F4B400]/20 text-primary dark:text-[#F4B400] rounded text-[10px] font-mono font-bold uppercase flex items-center gap-1 cursor-pointer transition-all border border-primary/20 dark:border-[#F4B400]/20"
+                                            >
+                                              <Eye size={10} /> Ver Imagen Adjunta
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="text-right">
+                                        <span className="text-[10px] font-mono bg-[#0E5A5E]/10 text-[#0E5A5E] px-2.5 py-1 rounded">
+                                          {sub.service}
+                                        </span>
+                                        <span className="block text-[9px] text-gray-400 font-mono mt-1">
+                                          {new Date(sub.date).toLocaleString()}
+                                        </span>
+                                      </div>
+                                    </div>
 
-                          <div className="flex gap-2 justify-end pt-2">
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(`Cliente: ${sub.name}\nCorreo: ${sub.email}\nWhatsApp: ${sub.phone}\nServicio: ${sub.service}\nMensaje: ${sub.message}`);
-                                showToast("Ficha copiada al portapapeles");
-                              }}
-                              className="px-3 py-1.5 rounded bg-gray-100 dark:bg-neutral-900 text-gray-500 hover:text-black dark:hover:text-white text-xs font-mono font-bold uppercase flex items-center gap-1"
-                            >
-                              <Copy size={12} /> Copiar Ficha
-                            </button>
-                            <button
-                              onClick={() => handleDeleteSubmission(sub.id)}
-                              className="px-3 py-1.5 rounded bg-red-100 dark:bg-neutral-900 text-red-500 hover:bg-red-200 text-xs font-mono font-bold uppercase flex items-center gap-1"
-                            >
-                              <Trash2 size={12} /> Eliminar
-                            </button>
+                                    <div className="space-y-2">
+                                      <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap font-light">{sub.message}</p>
+                                      <div className="flex flex-wrap gap-4 text-xs font-mono pt-2 text-gray-400">
+                                        <span>Email: <a href={`mailto:${sub.email}`} className="text-primary hover:underline">{sub.email}</a></span>
+                                        {sub.phone && sub.phone !== "N/A" && (
+                                          <span>WhatsApp: <a href={`https://wa.me/${sub.phone.replace(/\+/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{sub.phone}</a></span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800/20 mt-2">
+                                      {status === "pending" && (
+                                        <>
+                                          <button
+                                            onClick={() => handleRejectSubmission(sub.id)}
+                                            className="px-4 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-900/30 text-xs font-mono font-bold uppercase flex items-center gap-1 cursor-pointer transition-all"
+                                          >
+                                            Rechazar
+                                          </button>
+                                          <button
+                                            onClick={() => handleApproveSubmission(sub.id)}
+                                            className="px-4 py-1.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs font-mono font-bold uppercase flex items-center gap-1.5 cursor-pointer shadow-lg shadow-green-600/10 transition-all"
+                                          >
+                                            <CheckCircle2 size={12} /> Aprobar Pago y Activar
+                                          </button>
+                                        </>
+                                      )}
+                                      <button
+                                        onClick={() => handleDeleteSubmission(sub.id)}
+                                        className="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-500 hover:text-red-500 text-xs font-mono font-bold uppercase flex items-center gap-1 cursor-pointer transition-all"
+                                        title="Eliminar del historial"
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                           </div>
                         </div>
-                      ))}
+                      )}
+
+                      {/* Section 2: Standard Contact Enquiries */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-mono font-bold text-gray-400 uppercase tracking-wider">
+                          📬 Mensajes y Consultas de la Agencia
+                        </h3>
+                        <div className="space-y-4">
+                          {submissions
+                            .filter((sub: any) => !sub.isPaymentRequest)
+                            .map((sub: any) => (
+                              <div key={sub.id} className="p-6 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-neutral-950 flex flex-col justify-between gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800/40 pb-3">
+                                  <div>
+                                    <span className="font-heading font-extrabold text-base text-black dark:text-white block">{sub.name}</span>
+                                    <span className="text-xs text-gray-400 font-mono">Empresa: {sub.company}</span>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-[10px] font-mono bg-primary/10 text-primary dark:text-secondary px-2.5 py-1 rounded">
+                                      {sub.service}
+                                    </span>
+                                    <span className="block text-[9px] text-gray-400 font-mono mt-1">
+                                      {new Date(sub.date).toLocaleString()}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-wrap font-light">{sub.message}</p>
+                                  <div className="flex flex-wrap gap-4 text-xs font-mono pt-2 text-gray-400">
+                                    <span>Email: <a href={`mailto:${sub.email}`} className="text-primary hover:underline">{sub.email}</a></span>
+                                    {sub.phone && sub.phone !== "N/A" && (
+                                      <span>WhatsApp: <a href={`https://wa.me/${sub.phone.replace(/\+/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{sub.phone}</a></span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex gap-2 justify-end pt-2">
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(`Cliente: ${sub.name}\nCorreo: ${sub.email}\nWhatsApp: ${sub.phone}\nServicio: ${sub.service}\nMensaje: ${sub.message}`);
+                                      showToast("Ficha copiada al portapapeles");
+                                    }}
+                                    className="px-3 py-1.5 rounded bg-gray-100 dark:bg-neutral-900 text-gray-500 hover:text-black dark:hover:text-white text-xs font-mono font-bold uppercase flex items-center gap-1 cursor-pointer transition-all"
+                                  >
+                                    <Copy size={12} /> Copiar Ficha
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteSubmission(sub.id)}
+                                    className="px-3 py-1.5 rounded bg-red-100 dark:bg-neutral-900 text-red-500 hover:bg-red-200 text-xs font-mono font-bold uppercase flex items-center gap-1 cursor-pointer transition-all"
+                                  >
+                                    <Trash2 size={12} /> Eliminar
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          {submissions.filter((sub: any) => !sub.isPaymentRequest).length === 0 && (
+                            <div className="py-8 text-center text-gray-400 font-mono text-xs">
+                              No hay consultas de clientes en esta sección.
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -769,6 +1166,276 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                 </div>
               )}
 
+              {/* Courses (LMS) Tab */}
+              {activeTab === "courses" && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <div>
+                      <h2 className="font-display font-extrabold text-2xl text-black dark:text-white">Academia LMS y Cursos</h2>
+                      <p className="text-gray-500 font-light text-sm mt-1">Sube tus entrenamientos, planifica capítulos y haz que tus cursos sean 100% autoadministrables.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingCourse({
+                        id: "course_" + Date.now(),
+                        title: "",
+                        description: "",
+                        category: "Automatizacion",
+                        level: "Principiante",
+                        lessonsCount: 0,
+                        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
+                        price: "$199 USD",
+                        instructor: "Jose Urdaneta",
+                        lessons: []
+                      })}
+                      className="px-4 py-2 rounded-xl bg-primary text-white font-mono font-bold text-xs uppercase flex items-center gap-1.5 hover:bg-opacity-95 cursor-pointer"
+                    >
+                      <Plus size={14} /> Nuevo Curso
+                    </button>
+                  </div>
+
+                  {editingCourse ? (
+                    <form onSubmit={handleSaveCourse} className="bg-gray-50 dark:bg-black/35 p-6 rounded-2xl border border-gray-100 dark:border-white/10 space-y-6">
+                      <div className="border-b border-gray-200 dark:border-white/5 pb-3">
+                        <h4 className="font-heading font-extrabold text-base text-gray-900 dark:text-white">Detalles Principales del Curso</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col">
+                          <label className="text-xs font-mono font-bold text-gray-400 mb-1">Título del Curso</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingCourse.title}
+                            onChange={e => setEditingCourse({...editingCourse, title: e.target.value})}
+                            className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded bg-transparent text-sm text-black dark:text-white focus:border-primary"
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-xs font-mono font-bold text-gray-400 mb-1">Categoría</label>
+                          <select
+                            value={editingCourse.category}
+                            onChange={e => setEditingCourse({...editingCourse, category: e.target.value})}
+                            className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded bg-transparent text-sm text-black dark:text-white dark:bg-[#051a1b]"
+                          >
+                            <option value="Automatizacion">Automatización</option>
+                            <option value="Desarrollo">Desarrollo Web</option>
+                            <option value="Marketing">Marketing Digital</option>
+                            <option value="Diseño">Branding & Diseño</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="flex flex-col">
+                          <label className="text-xs font-mono font-bold text-gray-400 mb-1">Dificultad / Nivel</label>
+                          <select
+                            value={editingCourse.level}
+                            onChange={e => setEditingCourse({...editingCourse, level: e.target.value as any})}
+                            className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded bg-transparent text-sm text-black dark:text-white dark:bg-[#051a1b]"
+                          >
+                            <option value="Principiante">Principiante</option>
+                            <option value="Intermedio">Intermedio</option>
+                            <option value="Avanzado">Avanzado</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-xs font-mono font-bold text-gray-400 mb-1">Precio (ej. $199 USD)</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingCourse.price}
+                            onChange={e => setEditingCourse({...editingCourse, price: e.target.value})}
+                            className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded bg-transparent text-sm text-black dark:text-white focus:border-primary"
+                          />
+                        </div>
+                        <div className="flex flex-col md:col-span-2">
+                          <label className="text-xs font-mono font-bold text-gray-400 mb-1">Instructor Principal</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingCourse.instructor || ""}
+                            onChange={e => setEditingCourse({...editingCourse, instructor: e.target.value})}
+                            className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded bg-transparent text-sm text-black dark:text-white focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-xs font-mono font-bold text-gray-400 mb-1">Imagen URL del Curso (Cover)</label>
+                        <input
+                          type="text"
+                          required
+                          value={editingCourse.image}
+                          onChange={e => setEditingCourse({...editingCourse, image: e.target.value})}
+                          className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded bg-transparent text-sm text-black dark:text-white focus:border-primary"
+                        />
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-xs font-mono font-bold text-gray-400 mb-1">Sinopsis / Descripción General</label>
+                        <textarea
+                          required
+                          rows={3}
+                          value={editingCourse.description}
+                          onChange={e => setEditingCourse({...editingCourse, description: e.target.value})}
+                          className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded bg-transparent text-sm text-black dark:text-white focus:border-primary"
+                        />
+                      </div>
+
+                      {/* SYLLABUS LESSONS BUILDER */}
+                      <div className="border-t border-gray-200 dark:border-white/10 pt-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h5 className="font-heading font-extrabold text-sm text-gray-900 dark:text-white">Capítulos / Programa de Lecciones ({editingCourse.lessons?.length || 0})</h5>
+                        </div>
+
+                        {/* Lessons List inside Course */}
+                        {(!editingCourse.lessons || editingCourse.lessons.length === 0) ? (
+                          <p className="text-xs text-gray-400 font-mono italic">Aún no has agregado lecciones a este curso. Agrega una abajo.</p>
+                        ) : (
+                          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                            {editingCourse.lessons.map((lesson, index) => (
+                              <div key={lesson.id} className="p-3 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-5 h-5 rounded-full bg-primary/10 text-primary dark:bg-secondary/15 dark:text-secondary flex items-center justify-center text-[10px] font-mono">
+                                    {index + 1}
+                                  </div>
+                                  <div>
+                                    <h6 className="text-xs font-bold text-gray-900 dark:text-white">{lesson.title}</h6>
+                                    <span className="text-[10px] font-mono text-gray-400">Duración: {lesson.duration} | Video: {lesson.videoUrl ? "Sí" : "No"}</span>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const filtered = editingCourse.lessons.filter(l => l.id !== lesson.id);
+                                    setEditingCourse({ ...editingCourse, lessons: filtered });
+                                  }}
+                                  className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded cursor-pointer"
+                                  title="Eliminar Lección"
+                                >
+                                  <Trash size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* ADD LESSON MINI-FORM */}
+                        <div className="p-4 bg-white dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-white/10 space-y-3">
+                          <span className="text-xs font-mono font-bold text-primary dark:text-secondary block">➕ Agregar Nueva Lección al Programa</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <input
+                              type="text"
+                              id="new-lesson-title"
+                              placeholder="Título del capítulo..."
+                              className="px-3 py-1.5 border border-gray-200 dark:border-white/10 rounded bg-transparent text-xs text-black dark:text-white"
+                            />
+                            <input
+                              type="text"
+                              id="new-lesson-duration"
+                              placeholder="Duración (ej. 15:40)..."
+                              className="px-3 py-1.5 border border-gray-200 dark:border-white/10 rounded bg-transparent text-xs text-black dark:text-white"
+                            />
+                            <input
+                              type="text"
+                              id="new-lesson-video"
+                              placeholder="Video URL (opcional)..."
+                              className="px-3 py-1.5 border border-gray-200 dark:border-white/10 rounded bg-transparent text-xs text-black dark:text-white"
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            id="new-lesson-desc"
+                            placeholder="Breve descripción o tareas de la lección (opcional)..."
+                            className="w-full px-3 py-1.5 border border-gray-200 dark:border-white/10 rounded bg-transparent text-xs text-black dark:text-white"
+                          />
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const titleInput = document.getElementById("new-lesson-title") as HTMLInputElement;
+                                const durationInput = document.getElementById("new-lesson-duration") as HTMLInputElement;
+                                const videoInput = document.getElementById("new-lesson-video") as HTMLInputElement;
+                                const descInput = document.getElementById("new-lesson-desc") as HTMLInputElement;
+
+                                if (!titleInput?.value) {
+                                  alert("El título de la lección es obligatorio");
+                                  return;
+                                }
+
+                                const newLesson: Lesson = {
+                                  id: "lesson_" + Date.now() + "_" + Math.floor(Math.random() * 100),
+                                  title: titleInput.value,
+                                  duration: durationInput?.value || "10:00",
+                                  videoUrl: videoInput?.value || "https://www.w3schools.com/html/mov_bbb.mp4",
+                                  description: descInput?.value || ""
+                                };
+
+                                const updatedLessons = [...(editingCourse.lessons || []), newLesson];
+                                setEditingCourse({
+                                  ...editingCourse,
+                                  lessons: updatedLessons
+                                });
+
+                                // Clear inputs
+                                titleInput.value = "";
+                                durationInput.value = "";
+                                videoInput.value = "";
+                                if (descInput) descInput.value = "";
+                              }}
+                              className="px-3 py-1.5 bg-secondary text-black hover:opacity-95 font-mono font-bold text-[10px] uppercase rounded-md cursor-pointer"
+                            >
+                              Insertar Lección
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Course actions */}
+                      <div className="flex gap-2 justify-end border-t border-gray-200 dark:border-white/5 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => setEditingCourse(null)}
+                          className="px-4 py-2 rounded bg-gray-200 text-gray-800 text-xs font-mono uppercase font-bold cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 rounded bg-primary text-white text-xs font-mono uppercase font-bold flex items-center gap-1.5 hover:bg-opacity-95 cursor-pointer shadow-md"
+                        >
+                          <Save size={12} /> Guardar Curso
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-4">
+                      {courses.map(course => (
+                        <div key={course.id} className="p-4 border border-gray-100 dark:border-white/10 rounded-xl flex items-center justify-between bg-white dark:bg-white/5">
+                          <div className="flex items-center gap-4">
+                            <img src={course.image} referrerPolicy="no-referrer" className="w-16 h-12 object-cover rounded bg-neutral-900" />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-mono bg-primary/10 dark:bg-[#F4B400]/15 text-primary dark:text-[#F4B400] px-2 rounded font-bold uppercase">{course.category}</span>
+                                <span className="text-[9px] font-mono bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 px-2 rounded">{course.level}</span>
+                              </div>
+                              <h4 className="font-heading font-extrabold text-sm text-black dark:text-white mt-1.5">{course.title}</h4>
+                              <p className="text-[10px] font-mono text-gray-400 mt-0.5">{course.lessons?.length || 0} lecciones cargadas | Precio: {course.price}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <button onClick={() => setEditingCourse(course)} className="p-2 rounded bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/70 hover:text-primary dark:hover:text-[#F4B400] cursor-pointer"><Edit size={13} /></button>
+                            <button onClick={() => handleDeleteCourse(course.id)} className="p-2 rounded bg-red-100 dark:bg-red-950/40 text-red-500 hover:bg-red-200 cursor-pointer"><Trash2 size={13} /></button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* SEO & Config Tab */}
               {activeTab === "seo" && (
                 <div className="space-y-6">
@@ -817,6 +1484,48 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
             <CheckCircle2 size={16} className="text-secondary" />
             <span>{toastMessage}</span>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Lightbox Modal for Voucher image preview */}
+      <AnimatePresence>
+        {selectedVoucherImg && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedVoucherImg(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            ></motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative max-w-4xl max-h-[85vh] z-10 bg-white dark:bg-[#051a1b] rounded-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-white/10 flex flex-col p-4"
+            >
+              <button
+                onClick={() => setSelectedVoucherImg(null)}
+                className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black text-white rounded-full transition-all z-20 cursor-pointer"
+                title="Cerrar"
+              >
+                <X size={16} />
+              </button>
+              
+              <div className="flex-1 overflow-auto flex items-center justify-center max-h-[75vh]">
+                <img
+                  src={selectedVoucherImg}
+                  alt="Comprobante de pago"
+                  className="max-w-full max-h-[70vh] object-contain rounded"
+                />
+              </div>
+              
+              <div className="text-center pt-3 text-xs font-mono text-gray-500">
+                <span>Comprobante cargado por el Alumno desde PC</span>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

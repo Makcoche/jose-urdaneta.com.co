@@ -8,6 +8,7 @@ import ProcessSection from "./components/ProcessSection";
 import StatsSection from "./components/StatsSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 import PlanesSection from "./components/PlanesSection";
+import CoursesSection from "./components/CoursesSection";
 import SocialSection from "./components/SocialSection";
 import AutomationSection from "./components/AutomationSection";
 import BlogSection from "./components/BlogSection";
@@ -139,6 +140,9 @@ export default function App() {
 
       {/* 9. TESTIMONIALS */}
       <TestimonialsSection testimonials={appData.testimonials} />
+
+      {/* 9b. COURSES ACADEMY (LMS) */}
+      <CoursesSection courses={appData.courses} />
 
       {/* 10. PACKAGES & ESTIMATES COMPARISON */}
       <PlanesSection onSelectPlan={handleSelectPlan} />

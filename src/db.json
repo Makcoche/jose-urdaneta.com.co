@@ -259,5 +259,116 @@
     "title": "JOSE URDANETA | Diseño Web, Automatización y Marketing Digital Premium",
     "description": "Creamos páginas web que venden. Agencia de diseño digital de lujo y automatizaciones de negocios con Inteligencia Artificial. Eleva tu marca al siguiente nivel.",
     "keywords": "diseño web profesional, e-commerce, automatización whatsapp, chatbots inteligencia artificial, seo, google ads, branding de lujo, Jose Urdaneta"
-  }
+  },
+  "courses": [
+    {
+      "id": "1",
+      "title": "Master en Automatización de Ventas con IA",
+      "description": "Aprende a conectar bots de WhatsApp automáticos, entrenar modelos de Inteligencia Artificial (Gemini) con tu catálogo de servicios e integrar CRM para almacenar tus leads y procesar conversiones 24/7 en piloto automático.",
+      "category": "Automatizacion",
+      "level": "Intermedio",
+      "lessonsCount": 4,
+      "image": "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80",
+      "price": "$299 USD",
+      "instructor": "Jose Urdaneta",
+      "lessons": [
+        {
+          "id": "1-1",
+          "title": "Introducción a los Modelos de Lenguaje (LLMs) en Ventas",
+          "duration": "12:15",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "description": "Conceptos clave para entender cómo un modelo de inteligencia artificial analiza la intención de compra de tus clientes."
+        },
+        {
+          "id": "1-2",
+          "title": "Conectando la API de WhatsApp Cloud",
+          "duration": "18:40",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "description": "Configuración técnica desde cero del panel de Meta Developer para recibir y enviar mensajes programáticos."
+        },
+        {
+          "id": "1-3",
+          "title": "Estructura de Prompts Comerciales",
+          "duration": "15:20",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "description": "Diseño de instrucciones de sistema refinadas para guiar el tono, el alcance y el flujo de persuasión del bot."
+        },
+        {
+          "id": "1-4",
+          "title": "Integración Total de base de datos con CRM",
+          "duration": "22:10",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "description": "Sincronización final de Webhooks para registrar leads validados en tu plataforma comercial preferida."
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Desarrollo de Sitios Web UX/UI Premium de Alta Conversión",
+      "description": "Domina las metodologías avanzadas de diseño de interfaces, optimización extrema de carga bajo 1 segundo (Vite + React) y layouts de alto nivel visual que atraen clientes dispuestos a pagar tarifas VIP.",
+      "category": "Desarrollo",
+      "level": "Avanzado",
+      "lessonsCount": 3,
+      "image": "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80",
+      "price": "$199 USD",
+      "instructor": "Jose Urdaneta",
+      "lessons": [
+        {
+          "id": "2-1",
+          "title": "Psicología del Color y Retículas de Lujo",
+          "duration": "14:50",
+          "videoUrl": "https://www.w3schools.com/html/movie.mp4",
+          "description": "Cómo estructurar el espacio negativo y balance tipográfico para generar confianza corporativa inmediata."
+        },
+        {
+          "id": "2-2",
+          "title": "Optimización Crítica de Rendimiento con React",
+          "duration": "25:35",
+          "videoUrl": "https://www.w3schools.com/html/movie.mp4",
+          "description": "Estrategias de lazy loading, code-splitting y compresión para lograr puntuación de 100 en Google Lighthouse."
+        },
+        {
+          "id": "2-3",
+          "title": "Microinteracciones y Animaciones Fluidas",
+          "duration": "19:15",
+          "videoUrl": "https://www.w3schools.com/html/movie.mp4",
+          "description": "Añade valor de marca refinado implementando transiciones y gestos con Framer Motion / Motion."
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "SEO de Élite y Google Search Marketing",
+      "description": "El plan maestro paso a paso para indexar, posicionar y capturar el tráfico de clientes con intención de compra alta. Evita depender de anuncios pagados y construye un activo digital orgánico e indestructible.",
+      "category": "Marketing",
+      "level": "Principiante",
+      "lessonsCount": 3,
+      "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
+      "price": "Gratuito",
+      "instructor": "Jose Urdaneta",
+      "lessons": [
+        {
+          "id": "3-1",
+          "title": "Estudio de Palabras Clave de Alta Intención",
+          "duration": "11:05",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "description": "Cómo identificar los términos que usan las personas preparadas para pagar, y descartar consultas meramente informativas."
+        },
+        {
+          "id": "3-2",
+          "title": "SEO Técnico On-Page e Indexación Inmediata",
+          "duration": "16:40",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "description": "Optimización de Sitemaps, metaetiquetas estructuradas JSON-LD y rastreo ágil por los robots de Google."
+        },
+        {
+          "id": "3-3",
+          "title": "Estrategia de Enlaces e Inbound Marketing",
+          "duration": "20:30",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "description": "Construcción de autoridad digital orgánica mediante relaciones públicas, menciones y contenidos compartidos de valor."
+        }
+      ]
+    }
+  ]
 }

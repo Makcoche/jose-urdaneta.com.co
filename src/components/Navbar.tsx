@@ -25,6 +25,7 @@ export default function Navbar({ darkMode, setDarkMode, openAdmin }: NavbarProps
     { name: "Servicios", href: "#servicios" },
     { name: "Portafolio", href: "#portafolio" },
     { name: "Proceso", href: "#proceso" },
+    { name: "Academia", href: "#academia" },
     { name: "Planes", href: "#planes" },
     { name: "Blog", href: "#blog" },
     { name: "Contacto", href: "#contacto" },

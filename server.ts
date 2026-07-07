@@ -3,10 +3,17 @@ import path from "path";
 import fs from "fs/promises";
 import { GoogleGenAI } from "@google/genai";
 import { createServer as createViteServer } from "vite";
+import Stripe from "stripe";
+import crypto from "crypto";
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Helper to hash passwords
+  function hashPassword(password: string): string {
+    return crypto.createHash("sha256").update(password).digest("hex");
+  }
 
   // Body parser middlewares
   app.use(express.json({ limit: "50mb" }));
@@ -19,7 +26,9 @@ async function startServer() {
   async function readDatabase() {
     try {
       const data = await fs.readFile(dbPath, "utf-8");
-      return JSON.parse(data);
+      const db = JSON.parse(data);
+      if (!db.users) db.users = [];
+      return db;
     } catch (err) {
       console.error("Error reading db.json, returning empty defaults:", err);
       return {
@@ -29,7 +38,8 @@ async function startServer() {
         blog: [],
         formSubmissions: [],
         socialPosts: [],
-        seoSettings: { title: "", description: "", keywords: "" }
+        seoSettings: { title: "", description: "", keywords: "" },
+        users: []
       };
     }
   }
@@ -51,10 +61,163 @@ async function startServer() {
     res.json(db);
   });
 
-  // API: Submit a contact form
+  // API: Auth - Register a new user
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { name, email, password } = req.body;
+      if (!name || !email || !password) {
+        res.status(400).json({ error: "Nombre, Correo y Contraseña son requeridos." });
+        return;
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+      const db = await readDatabase();
+
+      // Check if user already exists
+      const existingUser = db.users.find((u: any) => u.email.toLowerCase().trim() === normalizedEmail);
+      if (existingUser) {
+        res.status(400).json({ error: "El correo electrónico ya está registrado." });
+        return;
+      }
+
+      // First user, or specific admin emails, get the "admin" role
+      const isAdminEmail = 
+        normalizedEmail === "josegregoriourdanetaguadama@gmail.com" || 
+        normalizedEmail === "admin@joseurdaneta.com";
+      const role = (db.users.length === 0 || isAdminEmail) ? "admin" : "student";
+
+      const newUser = {
+        id: "user_" + Date.now(),
+        name: name.trim(),
+        email: normalizedEmail,
+        passwordHash: hashPassword(password),
+        role,
+        activeMembership: {
+          level: null,
+          expiresAt: null
+        },
+        completedLessons: [],
+        createdAt: new Date().toISOString()
+      };
+
+      db.users.push(newUser);
+      await writeDatabase(db);
+
+      // Return user without password hash
+      const { passwordHash, ...userResponse } = newUser;
+      res.json({ success: true, user: userResponse });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Auth - Login
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        res.status(400).json({ error: "Correo y Contraseña son requeridos." });
+        return;
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+      const db = await readDatabase();
+
+      const user = db.users.find((u: any) => u.email.toLowerCase().trim() === normalizedEmail);
+      if (!user) {
+        res.status(400).json({ error: "Credenciales incorrectas o usuario no registrado." });
+        return;
+      }
+
+      const hash = hashPassword(password);
+      if (user.passwordHash !== hash) {
+        res.status(400).json({ error: "Contraseña incorrecta." });
+        return;
+      }
+
+      const { passwordHash, ...userResponse } = user;
+      res.json({ success: true, user: userResponse });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Update lesson progress
+  app.post("/api/users/update-progress", async (req, res) => {
+    try {
+      const { userId, lessonId, completed } = req.body;
+      if (!userId || !lessonId) {
+        res.status(400).json({ error: "ID de usuario y de clase son requeridos." });
+        return;
+      }
+
+      const db = await readDatabase();
+      const userIndex = db.users.findIndex((u: any) => u.id === userId);
+      if (userIndex === -1) {
+        res.status(404).json({ error: "Usuario no encontrado." });
+        return;
+      }
+
+      let completedList = db.users[userIndex].completedLessons || [];
+      if (completed) {
+        if (!completedList.includes(lessonId)) {
+          completedList.push(lessonId);
+        }
+      } else {
+        completedList = completedList.filter((id: string) => id !== lessonId);
+      }
+
+      db.users[userIndex].completedLessons = completedList;
+      await writeDatabase(db);
+
+      res.json({ success: true, completedLessons: completedList });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Admin - Get all registered users
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const db = await readDatabase();
+      // Map and exclude password hashes for security
+      const safeUsers = db.users.map(({ passwordHash, ...user }: any) => user);
+      res.json(safeUsers);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Admin - Update user membership manually
+  app.post("/api/admin/users/:id/membership", async (req, res) => {
+    try {
+      const { level } = req.body;
+      const userId = req.params.id;
+
+      const db = await readDatabase();
+      const userIndex = db.users.findIndex((u: any) => u.id === userId);
+      if (userIndex === -1) {
+        res.status(404).json({ error: "Usuario no encontrado." });
+        return;
+      }
+
+      db.users[userIndex].activeMembership = {
+        level: level || null,
+        expiresAt: level ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null
+      };
+
+      await writeDatabase(db);
+      const { passwordHash, ...userResponse } = db.users[userIndex];
+      res.json({ success: true, user: userResponse });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Submit a contact form / payment request
   app.post("/api/contact", async (req, res) => {
     try {
-      const { name, company, email, phone, service, message } = req.body;
+      const { name, company, email, phone, service, message, userId, requestedLevel, voucher, voucherImage, isPaymentRequest, status } = req.body;
       if (!name || !email || !message) {
         res.status(400).json({ error: "Nombre, Correo y Mensaje son requeridos." });
         return;
@@ -69,7 +232,13 @@ async function startServer() {
         phone: phone || "N/A",
         service: service || "General",
         message,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        userId: userId || null,
+        requestedLevel: requestedLevel || null,
+        voucher: voucher || null,
+        voucherImage: voucherImage || null,
+        isPaymentRequest: !!isPaymentRequest,
+        status: status || (isPaymentRequest ? "pending" : "none")
       };
 
       if (!db.formSubmissions) {
@@ -80,6 +249,241 @@ async function startServer() {
 
       res.json({ success: true, submission: newSubmission });
     } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Admin - Approve payment / subscription request
+  app.post("/api/admin/submissions/:id/approve", async (req, res) => {
+    try {
+      const submissionId = req.params.id;
+      const db = await readDatabase();
+      
+      const subIndex = db.formSubmissions?.findIndex((s: any) => s.id === submissionId);
+      if (subIndex === -1 || subIndex === undefined) {
+        res.status(404).json({ error: "Solicitud no encontrada." });
+        return;
+      }
+      
+      const submission = db.formSubmissions[subIndex];
+      submission.status = "approved";
+      
+      // Locate the user to activate membership
+      let userIndex = -1;
+      if (submission.userId) {
+        userIndex = db.users.findIndex((u: any) => u.id === submission.userId);
+      }
+      if (userIndex === -1 && submission.email) {
+        userIndex = db.users.findIndex((u: any) => u.email.toLowerCase().trim() === submission.email.toLowerCase().trim());
+      }
+      
+      if (userIndex !== -1) {
+        const level = submission.requestedLevel || "Principiante";
+        db.users[userIndex].activeMembership = {
+          level,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        };
+        submission.message += `\n\n[SISTEMA - APROBADO] Membresía ${level} activada con éxito para ${db.users[userIndex].name}.`;
+      } else {
+        submission.message += `\n\n[SISTEMA - ALERTA] Aprobado pero no se encontró cuenta de usuario registrada con el correo de la solicitud.`;
+      }
+      
+      await writeDatabase(db);
+      res.json({ success: true, submission });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Admin - Reject payment / subscription request
+  app.post("/api/admin/submissions/:id/reject", async (req, res) => {
+    try {
+      const submissionId = req.params.id;
+      const db = await readDatabase();
+      
+      const subIndex = db.formSubmissions?.findIndex((s: any) => s.id === submissionId);
+      if (subIndex === -1 || subIndex === undefined) {
+        res.status(404).json({ error: "Solicitud no encontrada." });
+        return;
+      }
+      
+      const submission = db.formSubmissions[subIndex];
+      submission.status = "rejected";
+      submission.message += `\n\n[SISTEMA - RECHAZADO] Solicitud rechazada por el administrador.`;
+      
+      await writeDatabase(db);
+      res.json({ success: true, submission });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Admin - Update user role manually
+  app.post("/api/admin/users/:id/role", async (req, res) => {
+    try {
+      const { role } = req.body;
+      const userId = req.params.id;
+      if (role !== "admin" && role !== "student") {
+        res.status(400).json({ error: "Rol no válido (debe ser 'admin' o 'student')." });
+        return;
+      }
+
+      const db = await readDatabase();
+      const userIndex = db.users.findIndex((u: any) => u.id === userId);
+      if (userIndex === -1) {
+        res.status(404).json({ error: "Usuario no encontrado." });
+        return;
+      }
+
+      db.users[userIndex].role = role;
+      await writeDatabase(db);
+      const { passwordHash, ...userResponse } = db.users[userIndex];
+      res.json({ success: true, user: userResponse });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Create Stripe Checkout Session (Optional integration - falls back to simulated if key missing)
+  app.post("/api/create-checkout-session", async (req, res) => {
+    try {
+      const { membershipId, level, priceCop, priceUsd, name, email, phone, userId } = req.body;
+
+      const stripeKey = process.env.STRIPE_SECRET_KEY;
+      
+      // Calculate USD amount in cents
+      let usdAmount = 12; // default for Principiante
+      if (level === "Intermedio") usdAmount = 25;
+      else if (level === "Avanzado") usdAmount = 49;
+      
+      const amountInCents = usdAmount * 100;
+
+      // Handle Database assignment helper
+      const assignUserMembership = async (db: any) => {
+        if (userId) {
+          const userIndex = db.users.findIndex((u: any) => u.id === userId);
+          if (userIndex !== -1) {
+            db.users[userIndex].activeMembership = {
+              level,
+              expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            };
+            console.log(`Successfully assigned membership ${level} to user ${userId}`);
+          }
+        }
+      };
+
+      if (!stripeKey || stripeKey === "MY_STRIPE_SECRET_KEY" || stripeKey.trim() === "") {
+        // Fallback to simulated payment response
+        console.log("No valid STRIPE_SECRET_KEY found. Utilizing high-fidelity simulated checkout.");
+        
+        // Save the transaction to DB submissions as a registered purchase request
+        const db = await readDatabase();
+        const newSubmission = {
+          id: "submission_pay_" + Date.now(),
+          name,
+          company: "Matrícula Pasarela (Simulada)",
+          email,
+          phone: phone || "N/A",
+          service: `Suscripción ${level}`,
+          message: `[PAGO SIMULADO - MODO DEMO]
+Suscripción solicitada: Membresía ${level} (${priceCop} / $${usdAmount} USD)
+Método de Pago: Pasarela de Pago Directa (Simulador de Tarjeta de Crédito)
+Estado del Pago: COMPLETADO (Aprobado en modo Sandbox)
+Fecha de Transacción: ${new Date().toLocaleString()}
+(Configura STRIPE_SECRET_KEY en las variables de entorno para procesar cobros reales con tarjeta de crédito de forma internacional)`,
+          date: new Date().toISOString()
+        };
+
+        if (!db.formSubmissions) {
+          db.formSubmissions = [];
+        }
+        db.formSubmissions.unshift(newSubmission);
+        
+        // Also assign membership to user immediately in sandbox
+        await assignUserMembership(db);
+        
+        await writeDatabase(db);
+
+        // Find and return the updated user if possible to keep client in sync
+        let updatedUser = null;
+        if (userId) {
+          const matched = db.users.find((u: any) => u.id === userId);
+          if (matched) {
+            const { passwordHash, ...safe } = matched;
+            updatedUser = safe;
+          }
+        }
+
+        res.json({
+          simulated: true,
+          success: true,
+          message: "Payment authorized successfully in Sandbox/Demo mode.",
+          user: updatedUser
+        });
+        return;
+      }
+
+      // Initialize Stripe lazily
+      const stripe = new Stripe(stripeKey, {
+        apiVersion: "2025-01-27.acacia" as any
+      });
+
+      // Create a Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `Membresía Academia - Nivel ${level}`,
+                description: `Suscripción mensual autoadministrable (${priceCop})`,
+              },
+              unit_amount: amountInCents,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${req.headers.origin || "http://localhost:3000"}/?payment=success&membershipId=${membershipId}&level=${level}&userId=${userId || ""}`,
+        cancel_url: `${req.headers.origin || "http://localhost:3000"}/?payment=cancel`,
+        customer_email: email,
+        metadata: {
+          membershipId,
+          level,
+          userId: userId || "",
+          phone: phone || "",
+        },
+      });
+
+      // Save a pending submission for tracking
+      const db = await readDatabase();
+      const newSubmission = {
+        id: "submission_stripe_" + Date.now(),
+        name,
+        company: "Stripe Checkout (Pendiente)",
+        email,
+        phone: phone || "N/A",
+        service: `Suscripción ${level}`,
+        message: `[PAGO INICIADO - STRIPE CHECKOUT REAl]
+Enlace de checkout generado con éxito. Esperando confirmación de fondos por Stripe.
+Sesión ID: ${session.id}
+Plan: Membresía ${level}`,
+        date: new Date().toISOString()
+      };
+      if (!db.formSubmissions) {
+        db.formSubmissions = [];
+      }
+      db.formSubmissions.unshift(newSubmission);
+
+      // In development mode where webhook is not active, assign active membership right away for test experience
+      await assignUserMembership(db);
+
+      await writeDatabase(db);
+
+      res.json({ simulated: false, url: session.url, id: session.id });
+    } catch (err: any) {
+      console.error("Stripe Session Error:", err);
       res.status(500).json({ error: err.message });
     }
   });
