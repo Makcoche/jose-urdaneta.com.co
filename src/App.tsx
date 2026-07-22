@@ -17,6 +17,7 @@ import ContactSection from "./components/ContactSection";
 import Footer from "./components/Footer";
 import AiChatbot from "./components/AiChatbot";
 import AdminPanel from "./components/AdminPanel";
+import defaultDb from "./db.json";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -64,9 +65,22 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setAppData(data);
+        localStorage.setItem("app_db_data", JSON.stringify(data));
+      } else {
+        throw new Error("API response was not OK");
       }
     } catch (err) {
-      console.error("Error loading application data:", err);
+      console.warn("Using offline / local storage database fallback:", err);
+      const cached = localStorage.getItem("app_db_data");
+      if (cached) {
+        try {
+          setAppData(JSON.parse(cached));
+        } catch {
+          setAppData(defaultDb);
+        }
+      } else {
+        setAppData(defaultDb);
+      }
     } finally {
       setLoading(false);
     }

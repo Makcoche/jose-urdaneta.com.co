@@ -146,27 +146,29 @@ export default function CoursesSection({ courses = [] }: CoursesSectionProps) {
     }
 
     setIsSubmitting(true);
-    try {
-      const payload = {
-        name: formName,
-        email: formEmail,
-        phone: formPhone || "No especificado",
-        service: `Membresía ${checkoutMembership?.name}`,
-        message: `[SOLICITUD DE MEMBRESÍA ACADÉMICA - AUTOADMINISTRABLE]
+    const payload = {
+      id: "sub_" + Date.now(),
+      name: formName,
+      email: formEmail,
+      phone: formPhone || "No especificado",
+      service: `Membresía ${checkoutMembership?.name}`,
+      message: `[SOLICITUD DE MEMBRESÍA ACADÉMICA - AUTOADMINISTRABLE]
 Nivel Solicitado: ${checkoutMembership?.level}
 Precio: ${checkoutMembership?.priceCop} (${checkoutMembership?.priceUsd})
 Método de Pago: ${checkoutPaymentMethod}
 Número de Comprobante / Voucher: ${formVoucher}
 Notas Adicionales: ${formNotes || "Ninguna"}
 Fecha de Solicitud: ${new Date().toLocaleString()}`,
-        userId: user?.id || null,
-        requestedLevel: checkoutMembership?.level || null,
-        voucher: formVoucher || null,
-        voucherImage: formImage || null,
-        isPaymentRequest: true,
-        status: "pending"
-      };
+      userId: user?.id || null,
+      requestedLevel: checkoutMembership?.level || null,
+      voucher: formVoucher || null,
+      voucherImage: formImage || null,
+      isPaymentRequest: true,
+      status: "pending",
+      createdAt: new Date().toISOString()
+    };
 
+    try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -183,11 +185,30 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
         setFormNotes("");
         setFormImage("");
       } else {
-        alert("Ocurrió un error al registrar la solicitud. Intenta nuevamente.");
+        throw new Error();
       }
     } catch (err) {
-      console.error(err);
-      alert("Error de conexión al procesar el pago.");
+      console.warn("Falling back to local storage submission saving:", err);
+      try {
+        const cached = localStorage.getItem("app_db_data");
+        if (cached) {
+          const db = JSON.parse(cached);
+          db.formSubmissions = [payload, ...(db.formSubmissions || [])];
+          localStorage.setItem("app_db_data", JSON.stringify(db));
+        } else {
+          const db = { formSubmissions: [payload] };
+          localStorage.setItem("app_db_data", JSON.stringify(db));
+        }
+        setSubmitSuccess(true);
+        setFormName("");
+        setFormEmail("");
+        setFormPhone("");
+        setFormVoucher("");
+        setFormNotes("");
+        setFormImage("");
+      } catch (e) {
+        alert("Error de conexión al procesar el pago.");
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -54,13 +54,32 @@ export default function AiChatbot() {
       if (response.ok) {
         const data = await response.json();
         setMessages(prev => [...prev, { sender: "bot", text: data.text }]);
+        setIsTyping(false);
       } else {
-        setMessages(prev => [...prev, { sender: "bot", text: "Disculpa, he tenido un inconveniente de conexión con el núcleo de Inteligencia Artificial. ¿Deseas reintentar?" }]);
+        throw new Error();
       }
     } catch (err) {
-      setMessages(prev => [...prev, { sender: "bot", text: "No he podido conectar con el servidor principal. Revisa tu conexión digital por favor." }]);
-    } finally {
-      setIsTyping(false);
+      console.warn("Falling back to local chatbot rule-based responder:", err);
+      // Fallback rule-based simulator
+      setTimeout(() => {
+        const query = text.toLowerCase();
+        let reply = "¡Hola! Soy el asistente virtual de Jose Urdaneta. Actualmente estoy operando en modo de contingencia local. Puedes escribirme sobre los servicios, planes de desarrollo o la Academia de Cursos.";
+        
+        if (query.includes("hola") || query.includes("buen") || query.includes("salud")) {
+          reply = "¡Hola! Qué gusto saludarte. ¿En qué puedo ayudarte hoy en relación a los servicios de desarrollo web, automatizaciones de procesos o la Academia LMS de Jose Urdaneta?";
+        } else if (query.includes("precio") || query.includes("planes") || query.includes("cost") || query.includes("suscrip") || query.includes("comprar") || query.includes("pago") || query.includes("pagar")) {
+          reply = "Contamos con tres opciones principales de desarrollo web: 'Landing Page' (desde $149 USD), 'Página Corporativa' (desde $299 USD) y 'Tienda Virtual' (desde $499 USD). Adicionalmente, nuestra Academia LMS tiene niveles de suscripción de pago para el acceso completo al contenido interactivo. ¡Puedes registrar un pago subiendo tu comprobante de Nequi o Bancolombia en la pestaña Academia!";
+        } else if (query.includes("contacto") || query.includes("agenda") || query.includes("llamada") || query.includes("reun") || query.includes("asesor") || query.includes("escribir") || query.includes("correo")) {
+          reply = "¡Excelente iniciativa! Puedes agendar una asesoría comercial completando el formulario de contacto de esta página web, o escribiendo de manera directa al correo electrónico de Jose: josegregoriourdanetaguadama@gmail.com.";
+        } else if (query.includes("curso") || query.includes("aprender") || query.includes("clase") || query.includes("lms") || query.includes("academia")) {
+          reply = "La Academia LMS de Jose Urdaneta ofrece lecciones y guías sobre desarrollo frontend, backend, automatizaciones e Inteligencia Artificial. Regístrate de forma totalmente gratuita y accede al contenido de nivel Principiante de inmediato. Los niveles Intermedio y Avanzado se activan mediante suscripción.";
+        } else if (query.includes("gracias") || query.includes("ok") || query.includes("perfecto") || query.includes("bueno") || query.includes("excelente")) {
+          reply = "¡Con mucho gusto! Estoy aquí para apoyarte. No olvides revisar el portafolio y los testimonios interactivos de clientes satisfechos.";
+        }
+        
+        setMessages(prev => [...prev, { sender: "bot", text: reply }]);
+        setIsTyping(false);
+      }, 1000);
     }
   };
 

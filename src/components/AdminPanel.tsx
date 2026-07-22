@@ -63,9 +63,14 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
       if (res.ok) {
         const data = await res.json();
         setSubmissions(data);
+      } else {
+        throw new Error("Server response was not OK");
       }
     } catch (err) {
-      console.error("Error fetching submissions:", err);
+      console.warn("Falling back to local submissions data:", err);
+      const cached = localStorage.getItem("app_db_data");
+      const db = cached ? JSON.parse(cached) : initialData;
+      setSubmissions(db.formSubmissions || []);
     }
   };
 
@@ -75,9 +80,14 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
       if (res.ok) {
         const data = await res.json();
         setRegisteredUsers(data);
+      } else {
+        throw new Error("Server response was not OK");
       }
     } catch (err) {
-      console.error("Error fetching registered users:", err);
+      console.warn("Falling back to local registered users:", err);
+      const cached = localStorage.getItem("app_db_data");
+      const db = cached ? JSON.parse(cached) : initialData;
+      setRegisteredUsers(db.users || []);
     }
   };
 
@@ -109,10 +119,23 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
         showToast(`Datos de ${key} guardados con éxito`);
         onDataUpdate(); // Reload main app state
       } else {
-        showToast("Error al guardar cambios en el servidor");
+        throw new Error("Server response was not OK");
       }
     } catch (err) {
-      showToast("Error de conexión al guardar cambios");
+      console.warn("Fallback to local storage saving:", err);
+      try {
+        const cached = localStorage.getItem("app_db_data");
+        const currentDb = cached ? JSON.parse(cached) : initialData;
+        const newDb = {
+          ...currentDb,
+          [key]: updatedData
+        };
+        localStorage.setItem("app_db_data", JSON.stringify(newDb));
+        showToast(`Guardado en LocalStorage (Modo Demo)`);
+        onDataUpdate(); // Trigger App's fetchData to reload from localStorage
+      } catch (e) {
+        showToast("Error de conexión al guardar cambios");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -251,9 +274,23 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
       if (response.ok) {
         setSubmissions(submissions.filter(s => s.id !== id));
         showToast("Lead comercial eliminado correctamente");
+      } else {
+        throw new Error();
       }
     } catch (err) {
-      showToast("Error de comunicación");
+      console.warn("Falling back to local deletion of submission:", err);
+      try {
+        const cached = localStorage.getItem("app_db_data");
+        const db = cached ? JSON.parse(cached) : initialData;
+        const updatedSubmissions = (db.formSubmissions || []).filter((s: any) => s.id !== id);
+        const newDb = { ...db, formSubmissions: updatedSubmissions };
+        localStorage.setItem("app_db_data", JSON.stringify(newDb));
+        setSubmissions(updatedSubmissions);
+        showToast("Lead eliminado localmente (Modo Demo)");
+        onDataUpdate();
+      } catch (e) {
+        showToast("Error de comunicación");
+      }
     }
   };
 
@@ -262,17 +299,59 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
     try {
       const response = await fetch(`/api/admin/submissions/${id}/approve`, { method: "POST" });
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json(); // Wait, in the target code it said "const data = await response.json();" (response was response, not res).
         if (data.success) {
           setSubmissions(submissions.map(s => s.id === id ? data.submission : s));
           showToast("Pago aprobado con éxito y membresía activada");
           fetchRegisteredUsers();
         }
       } else {
-        showToast("Error al aprobar el pago");
+        throw new Error();
       }
     } catch (err) {
-      showToast("Error de conexión");
+      console.warn("Falling back to local approval of submission:", err);
+      try {
+        const cached = localStorage.getItem("app_db_data");
+        const db = cached ? JSON.parse(cached) : initialData;
+        
+        let approvedSub: any = null;
+        const updatedSubmissions = (db.formSubmissions || []).map((s: any) => {
+          if (s.id === id) {
+            approvedSub = { ...s, status: "approved" };
+            return approvedSub;
+          }
+          return s;
+        });
+
+        if (!approvedSub) {
+          showToast("No se encontró la solicitud");
+          return;
+        }
+
+        // Activate membership for user
+        const updatedUsers = (db.users || []).map((u: any) => {
+          if (u.id === approvedSub.userId) {
+            return {
+              ...u,
+              activeMembership: {
+                level: approvedSub.requestedLevel,
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+              }
+            };
+          }
+          return u;
+        });
+
+        const newDb = { ...db, formSubmissions: updatedSubmissions, users: updatedUsers };
+        localStorage.setItem("app_db_data", JSON.stringify(newDb));
+        
+        setSubmissions(updatedSubmissions);
+        setRegisteredUsers(updatedUsers);
+        showToast("Pago aprobado y membresía activada localmente");
+        onDataUpdate();
+      } catch (e) {
+        showToast("Error de conexión");
+      }
     }
   };
 
@@ -287,10 +366,30 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
           showToast("Solicitud rechazada con éxito");
         }
       } else {
-        showToast("Error al rechazar la solicitud");
+        throw new Error();
       }
     } catch (err) {
-      showToast("Error de conexión");
+      console.warn("Falling back to local rejection of submission:", err);
+      try {
+        const cached = localStorage.getItem("app_db_data");
+        const db = cached ? JSON.parse(cached) : initialData;
+        
+        const updatedSubmissions = (db.formSubmissions || []).map((s: any) => {
+          if (s.id === id) {
+            return { ...s, status: "rejected" };
+          }
+          return s;
+        });
+
+        const newDb = { ...db, formSubmissions: updatedSubmissions };
+        localStorage.setItem("app_db_data", JSON.stringify(newDb));
+        
+        setSubmissions(updatedSubmissions);
+        showToast("Solicitud rechazada localmente");
+        onDataUpdate();
+      } catch (e) {
+        showToast("Error de conexión");
+      }
     }
   };
 
@@ -566,16 +665,38 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                                     setRegisteredUsers(prev => prev.map(item => item.id === u.id ? data.user : item));
                                   }
                                 } else {
-                                  showToast("Error al actualizar la membresía");
+                                  throw new Error();
                                 }
                               } catch (err) {
-                                showToast("Error de conexión");
+                                console.warn("Fallback to local membership change:", err);
+                                try {
+                                  const cached = localStorage.getItem("app_db_data");
+                                  const db = cached ? JSON.parse(cached) : initialData;
+                                  
+                                  const updatedUser = {
+                                    ...u,
+                                    activeMembership: {
+                                      level: newLevel,
+                                      expiresAt: newLevel ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null
+                                    }
+                                  };
+                                  
+                                  const updatedUsers = (db.users || []).map((item: any) => item.id === u.id ? updatedUser : item);
+                                  const newDb = { ...db, users: updatedUsers };
+                                  localStorage.setItem("app_db_data", JSON.stringify(newDb));
+                                  
+                                  setRegisteredUsers(updatedUsers);
+                                  showToast(`Membresía de ${u.name} actualizada localmente`);
+                                  onDataUpdate();
+                                } catch (e) {
+                                  showToast("Error de conexión");
+                                }
                               }
                             };
 
                             const toggleRole = async () => {
+                              const newRole = isUserAdmin ? "student" : "admin";
                               try {
-                                const newRole = isUserAdmin ? "student" : "admin";
                                 const res = await fetch(`/api/admin/users/${u.id}/role`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
@@ -588,10 +709,29 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                                     setRegisteredUsers(prev => prev.map(item => item.id === u.id ? data.user : item));
                                   }
                                 } else {
-                                  showToast("Error al cambiar el rol");
+                                  throw new Error();
                                 }
                               } catch (err) {
-                                showToast("Error de conexión");
+                                console.warn("Fallback to local role change:", err);
+                                try {
+                                  const cached = localStorage.getItem("app_db_data");
+                                  const db = cached ? JSON.parse(cached) : initialData;
+                                  
+                                  const updatedUser = {
+                                    ...u,
+                                    role: newRole
+                                  };
+                                  
+                                  const updatedUsers = (db.users || []).map((item: any) => item.id === u.id ? updatedUser : item);
+                                  const newDb = { ...db, users: updatedUsers };
+                                  localStorage.setItem("app_db_data", JSON.stringify(newDb));
+                                  
+                                  setRegisteredUsers(updatedUsers);
+                                  showToast(`Rol de ${u.name} cambiado a ${newRole === "admin" ? "Administrador" : "Alumno"} localmente`);
+                                  onDataUpdate();
+                                } catch (e) {
+                                  showToast("Error de conexión");
+                                }
                               }
                             };
 

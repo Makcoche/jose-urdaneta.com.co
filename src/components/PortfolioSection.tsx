@@ -30,25 +30,65 @@ export default function PortfolioSection({ projects }: PortfolioSectionProps) {
           </p>
         </div>
 
-        {/* Projects Grid (Behance Style) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {projects.map((project, index) => (
+// Projects Grid (Behance Style) with staggered entrance
+        <motion.div
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.15,
+                delayChildren: 0.1
+              }
+            }
+          }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-8"
+        >
+          {projects.map((project) => (
             <motion.div
               key={project.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
+              variants={{
+                hidden: { opacity: 0, y: 40 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: 0.6,
+                    ease: [0.25, 1, 0.5, 1]
+                  }
+                },
+                hover: {
+                  y: -8,
+                  scale: 1.015,
+                  transition: {
+                    duration: 0.4,
+                    ease: [0.25, 1, 0.5, 1]
+                  }
+                }
+              }}
+              whileHover="hover"
               onClick={() => setSelectedProject(project)}
               className="group cursor-pointer overflow-hidden rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-xl transition-all duration-300"
             >
               {/* Image Container with zoom */}
               <div className="aspect-[1.5] overflow-hidden relative">
-                <img
+                <motion.img
+                  variants={{
+                    hover: {
+                      scale: 1.06,
+                      transition: {
+                        duration: 0.6,
+                        ease: [0.25, 1, 0.5, 1]
+                      }
+                    }
+                  }}
                   src={project.image}
                   alt={project.title}
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className="w-full h-full object-cover"
                 />
                 
                 {/* Tech Badges on Card Overlay */}
@@ -83,13 +123,18 @@ export default function PortfolioSection({ projects }: PortfolioSectionProps) {
                   </h3>
                 </div>
                 
-                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-300 group-hover:bg-primary group-hover:text-white dark:group-hover:bg-secondary dark:group-hover:text-black transition-all duration-300">
+                <motion.div
+                  variants={{
+                    hover: { x: 4, y: -4, rotate: 15 }
+                  }}
+                  className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-300 group-hover:bg-primary group-hover:text-white dark:group-hover:bg-secondary dark:group-hover:text-black transition-all duration-300"
+                >
                   <ExternalLink size={16} />
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Portfolio Behance-Style Modal Lightbox */}
         <AnimatePresence>
