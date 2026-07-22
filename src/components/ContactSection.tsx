@@ -33,12 +33,12 @@ export default function ContactSection({ selectedServicePreset }: ContactSection
     "Landing Pages",
     "Diseño UX/UI",
     "Automatización de WhatsApp",
-    "Chatbots con Inteligencia Artificial",
+    "Chatbots & Bots Conversacionales",
     "Automatización de negocios",
     "Gestión de Redes Sociales",
     "Branding & Diseño gráfico",
     "Posicionamiento SEO",
-    "Campañas ADS (Google / Facebook)",
+    "Campañas ADS & Marketing Digital",
     "Hosting & Soporte Cloud",
     "Desarrollo de software / CRM"
   ];
@@ -127,7 +127,7 @@ export default function ContactSection({ selectedServicePreset }: ContactSection
           </h2>
           <div className="w-16 h-1 bg-primary dark:bg-secondary mx-auto rounded-full mb-5"></div>
           <p className="text-gray-600 dark:text-gray-400 font-light text-base">
-            Completa el formulario premium a continuación. Jose Urdaneta y su equipo de ingeniería comercial evaluarán tu marca para agendar una sesión estratégica sin coste.
+            Completa el formulario a continuación. El equipo comercial de Sinergia Agencia Creativa evaluará tu marca para agendar una sesión estratégica sin coste.
           </p>
         </div>
 
@@ -283,7 +283,7 @@ export default function ContactSection({ selectedServicePreset }: ContactSection
                         ¡Solicitud Recibida!
                       </h3>
                       <p className="text-gray-600 dark:text-gray-300 font-light text-sm sm:text-base leading-relaxed">
-                        Muchas gracias por confiar en Jose Urdaneta. Nuestro equipo comercial ha recibido tu requerimiento y te contactará por WhatsApp o correo en un lapso menor a 2 horas hábiles.
+                        Muchas gracias por confiar en Sinergia Agencia Creativa. Nuestro equipo comercial ha recibido tu requerimiento y te contactará por WhatsApp o correo en un lapso menor a 2 horas hábiles.
                       </p>
                     </div>
                     <button
@@ -309,18 +309,18 @@ export default function ContactSection({ selectedServicePreset }: ContactSection
               </h3>
               
               <div className="space-y-4">
-                <a href="mailto:josegregoriourdanetaguadama@gmail.com" className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">
+                <a href="mailto:comercial@agenciacreativasinergia.com" className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">
                   <span className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <Mail size={16} />
                   </span>
-                  <span>josegregoriourdanetaguadama@gmail.com</span>
+                  <span>comercial@agenciacreativasinergia.com</span>
                 </a>
                 
-                <a href="https://wa.me/584121234567" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">
+                <a href="https://wa.me/573145532957" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">
                   <span className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <MessageSquareText size={16} />
                   </span>
-                  <span>WhatsApp Corporativo direct support</span>
+                  <span>+57 314 553 2957 (WhatsApp)</span>
                 </a>
 
                 <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
@@ -345,7 +345,7 @@ export default function ContactSection({ selectedServicePreset }: ContactSection
                 className="w-full h-full transition-all duration-700 group-hover:filter-none"
               ></iframe>
               <div className="absolute top-3 left-3 px-3 py-1 bg-black/70 backdrop-blur-md rounded-full text-[9px] font-mono text-white pointer-events-none uppercase tracking-widest border border-white/10">
-                Jose Urdaneta Headquarters
+                Sinergia Agencia Creativa Headquarters
               </div>
             </div>
 

@@ -12,7 +12,7 @@ export default function AutomationSection() {
       subtitle: "Captación del Lead",
       icon: UserCheck,
       desc: "El usuario visita tu sitio web, escanea un código QR o hace clic en un anuncio, ingresando al embudo listo para interactuar.",
-      tech: "Traffic Source (Facebook/Google Ads, Organic SEO)",
+      tech: "Traffic Source (Anuncios Digitales, SEO Orgánico)",
       metric: "Atención inmediata 0s de espera"
     },
     {
@@ -26,11 +26,11 @@ export default function AutomationSection() {
     },
     {
       id: 2,
-      title: "IA (Gemini)",
-      subtitle: "Cerebro Cognitivo",
+      title: "Automatización",
+      subtitle: "Motor Conversacional",
       icon: Cpu,
-      desc: "Nuestra Inteligencia Artificial avanzada analiza la consulta, responde con precisión técnica, califica el presupuesto y recopila datos clave.",
-      tech: "Gemini 3.5 Flash Model",
+      desc: "Nuestros bots conversacionales avanzados analizan la consulta, responden con precisión técnica, califican el presupuesto y recopilan datos clave.",
+      tech: "Motor Conversacional Avanzado",
       metric: "Cierre de citas autónomo"
     },
     {
@@ -38,7 +38,7 @@ export default function AutomationSection() {
       title: "CRM",
       subtitle: "Sincronización Total",
       icon: Database,
-      desc: "La IA clasifica el cliente en tu pipeline comercial del CRM en tiempo real, agendando tareas de seguimiento y alertando a tu equipo.",
+      desc: "El sistema clasifica el cliente en tu pipeline comercial del CRM en tiempo real, agendando tareas de seguimiento y alertando a tu equipo.",
       tech: "Hubspot / Salesforce / Custom DB",
       metric: "Cero pérdida de Leads"
     },
@@ -70,7 +70,7 @@ export default function AutomationSection() {
           </h2>
           <div className="w-16 h-1 bg-primary dark:bg-secondary mx-auto rounded-full mb-5"></div>
           <p className="text-gray-600 dark:text-gray-400 font-light text-base">
-            Diseñamos ecosistemas hiper-eficientes donde la inteligencia artificial y los disparadores en la nube operan como tus vendedores de élite las 24 horas del día.
+            Diseñamos ecosistemas hiper-eficientes donde la automatización y los disparadores en la nube operan como tus vendedores de élite las 24 horas del día.
           </p>
         </div>
 
@@ -138,7 +138,7 @@ export default function AutomationSection() {
                 <p className="text-primary-light font-bold text-[#F4B400]">
                   &gt; Siguiente estado sugerido: <span className="underline">{steps[activeStep].title}</span> ({steps[activeStep].subtitle})
                 </p>
-                <p className="text-gray-300">&gt; Webhook recibido desde WhatsApp API. Ejecutando análisis cognitivo con Gemini.</p>
+                <p className="text-gray-300">&gt; Webhook recibido desde WhatsApp API. Ejecutando procesamiento de mensajes.</p>
                 <p className="text-[#0E5A5E] dark:text-[#2dd4bf]">&gt; {steps[activeStep].desc}</p>
               </div>
             </div>

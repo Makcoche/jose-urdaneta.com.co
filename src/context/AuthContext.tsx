@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!foundUser && isAdminEmail) {
           foundUser = {
             id: "user_admin",
-            name: "Jose Urdaneta (Admin Demo)",
+            name: "Sinergia Admin (Demo)",
             email: normalizedEmail,
             role: "admin",
             activeMembership: {

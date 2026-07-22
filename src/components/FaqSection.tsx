@@ -12,16 +12,16 @@ export default function FaqSection() {
 
   const faqs: FaqItem[] = [
     {
-      question: "¿Por qué elegir a Jose Urdaneta en lugar de una plantilla común?",
-      answer: "Las plantillas comunes de WordPress o constructores visuales genéricos están sobrecargadas de código innecesario, cargan lento, carecen de optimización SEO y lucen idénticas a miles de webs en internet. En Jose Urdaneta diseñamos software a medida desde cero, garantizando diseños únicos de alta costura digital, cargas ultrarrápidas bajo el segundo, seguridad absoluta y embudos comerciales integrados directamente."
+      question: "¿Por qué elegir a Sinergia Agencia Creativa en lugar de una plantilla común?",
+      answer: "Las plantillas comunes de WordPress o constructores visuales genéricos están sobrecargadas de código innecesario, cargan lento, carecen de optimización SEO y lucen idénticas a miles de webs en internet. En Sinergia Agencia Creativa diseñamos software a medida desde cero, garantizando diseños únicos de alta costura digital, cargas ultrarrápidas bajo el segundo, seguridad absoluta y embudos comerciales integrados directamente."
     },
     {
-      question: "¿Cómo funciona la automatización de WhatsApp con Inteligencia Artificial?",
-      answer: "Conectamos tu línea comercial mediante la API oficial de WhatsApp en la nube a un motor conversacional impulsado por Inteligencia Artificial (con el modelo Gemini de Google). El bot comprende el contexto de las consultas complejas, ofrece cotizaciones estimadas preliminares, recopila correos electrónicos y nombres, responde preguntas frecuentes y agenda citas en Calendly de forma autónoma, actualizando tu CRM en piloto automático."
+      question: "¿Cómo funciona la automatización comercial de WhatsApp?",
+      answer: "Conectamos tu línea comercial mediante la API oficial de WhatsApp en la nube a un motor conversacional automatizado. El bot comprende el contexto de las consultas complejas, ofrece cotizaciones estimadas preliminares, recopila datos clave, responde preguntas frecuentes y agenda citas de forma autónoma, actualizando tu CRM en piloto automático."
     },
     {
       question: "¿Qué tecnologías utilizan en el desarrollo de páginas web y software?",
-      answer: "Nos especializamos en el ecosistema Javascript y tecnologías ágiles modernas de vanguardia: React, Node.js, Express, TailwindCSS, TypeScript y motores de Inteligencia Artificial (Google Gemini SDK). Esto asegura el rendimiento óptimo del servidor, adaptabilidad responsive extrema y escalabilidad inmediata para cualquier volumen de tráfico."
+      answer: "Nos especializamos en el ecosistema Javascript y tecnologías ágiles modernas de vanguardia: React, Node.js, Express, TailwindCSS y TypeScript. Esto asegura el rendimiento óptimo del servidor, adaptabilidad responsive extrema y escalabilidad inmediata para cualquier volumen de tráfico."
     },
     {
       question: "¿El hosting y el dominio están incluidos en los servicios?",

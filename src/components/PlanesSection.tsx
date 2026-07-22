@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Check, ArrowRight, ShieldCheck, Zap } from "lucide-react";
+import { Check, ArrowRight, ShieldCheck, Zap, Sparkles } from "lucide-react";
 
 interface PlanesSectionProps {
   onSelectPlan: (planName: string) => void;
@@ -9,7 +9,8 @@ export default function PlanesSection({ onSelectPlan }: PlanesSectionProps) {
   const plans = [
     {
       name: "Landing Page",
-      price: "$799",
+      price: "$990.000",
+      currency: "COP / Pago Único",
       description: "Diseñada exclusivamente para campañas de marketing de alto rendimiento y captación masiva de leads.",
       features: [
         "Diseño Premium personalizado",
@@ -20,12 +21,14 @@ export default function PlanesSection({ onSelectPlan }: PlanesSectionProps) {
         "1 Mes de soporte & hosting incluido"
       ],
       popular: false,
+      promo: false,
       cta: "Solicitar Cotización",
       accent: "border-gray-100 dark:border-gray-800"
     },
     {
       name: "Página Corporativa",
-      price: "$1,499",
+      price: "$1.980.000",
+      currency: "COP / Pago Único",
       description: "La solución definitiva para marcas consolidadas que exigen transmitir autoridad, elegancia e innovación.",
       features: [
         "Estructura Multi-sección (hasta 6 páginas)",
@@ -37,25 +40,29 @@ export default function PlanesSection({ onSelectPlan }: PlanesSectionProps) {
         "3 Meses de hosting premium incluido"
       ],
       popular: true,
+      promo: false,
       cta: "Plan Más Elegido",
       accent: "border-primary dark:border-secondary shadow-lg shadow-primary/10"
     },
     {
       name: "Tienda Virtual",
-      price: "$2,499",
-      description: "Plataforma de comercio electrónico de alto nivel, robusta y escalable para automatizar tus ventas 24/7.",
+      tag: "EN PROMOCIÓN",
+      price: "$2.990.000",
+      currency: "COP / Pago Único",
+      description: "Plataforma de comercio electrónico de alto nivel, robusta y escalable en oferta especial de promoción.",
       features: [
         "E-commerce robusto autoadministrable",
         "Panel de control para inventario y pedidos",
-        "Integración de pasarelas de pago (Stripe/PayPal)",
+        "Integración de pasarelas de pago (Mercado Pago / Bancolombia / Nequi / Stripe)",
         "Asistente chatbot de IA (Gemini integrado)",
         "Embudo de Checkout optimizado sin fricciones",
         "Emails transaccionales automáticos",
         "3 Meses de soporte premium total"
       ],
       popular: false,
-      cta: "Solicitar Cotización",
-      accent: "border-gray-100 dark:border-gray-800"
+      promo: true,
+      cta: "Aprovechar Promoción",
+      accent: "border-amber-500/40 dark:border-amber-400/40 shadow-xl shadow-amber-500/10"
     }
   ];
 
@@ -90,16 +97,21 @@ export default function PlanesSection({ onSelectPlan }: PlanesSectionProps) {
                 plan.popular ? "scale-105 z-10" : "scale-100"
               }`}
             >
-              {/* Popular Flag */}
+              {/* Popular / Promo Flag */}
               {plan.popular && (
-                <div className="absolute top-4 right-4 bg-primary dark:bg-secondary text-white dark:text-black px-3 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-widest flex items-center gap-1">
+                <div className="absolute top-4 right-4 bg-primary dark:bg-secondary text-white dark:text-black px-3 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-widest flex items-center gap-1 shadow-md">
                   <Zap size={8} /> Popular
+                </div>
+              )}
+              {plan.promo && (
+                <div className="absolute top-4 right-4 bg-amber-500 text-black px-3 py-1 rounded-full text-[9px] font-mono font-black uppercase tracking-widest flex items-center gap-1 shadow-lg animate-pulse">
+                  <Sparkles size={10} /> ¡PROMO ESPECIAL!
                 </div>
               )}
 
               <div>
                 {/* Plan Name */}
-                <h3 className="font-heading font-extrabold text-2xl text-black dark:text-white mb-2">
+                <h3 className="font-heading font-extrabold text-2xl text-black dark:text-white mb-2 flex items-center gap-2">
                   {plan.name}
                 </h3>
                 
@@ -109,11 +121,15 @@ export default function PlanesSection({ onSelectPlan }: PlanesSectionProps) {
                 </p>
 
                 {/* Price tag */}
-                <div className="flex items-baseline gap-1 mb-8">
-                  <span className="text-4xl font-display font-black text-primary dark:text-secondary">
-                    {plan.price}
+                <div className="flex flex-col mb-8">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl sm:text-4xl font-display font-black text-primary dark:text-secondary">
+                      {plan.price}
+                    </span>
+                  </div>
+                  <span className="text-gray-400 text-[11px] font-mono mt-1 font-semibold">
+                    {plan.currency}
                   </span>
-                  <span className="text-gray-400 text-xs font-mono">USD / Pago Único</span>
                 </div>
 
                 <div className="h-[1px] bg-gray-100 dark:bg-neutral-800 mb-8"></div>

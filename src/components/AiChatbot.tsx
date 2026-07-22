@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { MessageSquare, X, Send, Sparkles, Loader2, Bot, HelpCircle } from "lucide-react";
+import officialLogoImg from "../assets/images/sinergia_official_logo_1784756544650.jpg";
 
 export default function AiChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Array<{ sender: "user" | "bot"; text: string }>>([
     {
       sender: "bot",
-      text: "¡Hola! Soy el asistente virtual de Jose Urdaneta. ¿Te gustaría saber cómo podemos automatizar tus ventas, diseñar una web de lujo o estructurar tu embudo comercial con Inteligencia Artificial?"
+      text: "¡Hola! Soy el asistente virtual de Sinergia Agencia Creativa. ¿Te gustaría saber cómo podemos automatizar tus ventas, diseñar una web de lujo o estructurar tu embudo comercial?"
     }
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -25,7 +26,7 @@ export default function AiChatbot() {
 
   const presetQuestions = [
     "¿Cuánto cuesta una Landing Page?",
-    "¿Cómo funciona el bot de WhatsApp con IA?",
+    "¿Cómo funcionan las automatizaciones de WhatsApp?",
     "Ver proyectos de e-commerce exitosos",
     "Quiero agendar una consultoría de ventas"
   ];
@@ -63,16 +64,16 @@ export default function AiChatbot() {
       // Fallback rule-based simulator
       setTimeout(() => {
         const query = text.toLowerCase();
-        let reply = "¡Hola! Soy el asistente virtual de Jose Urdaneta. Actualmente estoy operando en modo de contingencia local. Puedes escribirme sobre los servicios, planes de desarrollo o la Academia de Cursos.";
+        let reply = "¡Hola! Soy el asistente virtual de Sinergia Agencia Creativa. Puedo brindarte información sobre nuestros servicios de desarrollo web, automatizaciones y programas de formación.";
         
         if (query.includes("hola") || query.includes("buen") || query.includes("salud")) {
-          reply = "¡Hola! Qué gusto saludarte. ¿En qué puedo ayudarte hoy en relación a los servicios de desarrollo web, automatizaciones de procesos o la Academia LMS de Jose Urdaneta?";
+          reply = "¡Hola! Qué gusto saludarte. ¿En qué puedo ayudarte hoy en relación a los servicios de desarrollo web, automatización de procesos o la Academia de Sinergia Agencia Creativa?";
         } else if (query.includes("precio") || query.includes("planes") || query.includes("cost") || query.includes("suscrip") || query.includes("comprar") || query.includes("pago") || query.includes("pagar")) {
-          reply = "Contamos con tres opciones principales de desarrollo web: 'Landing Page' (desde $149 USD), 'Página Corporativa' (desde $299 USD) y 'Tienda Virtual' (desde $499 USD). Adicionalmente, nuestra Academia LMS tiene niveles de suscripción de pago para el acceso completo al contenido interactivo. ¡Puedes registrar un pago subiendo tu comprobante de Nequi o Bancolombia en la pestaña Academia!";
+          reply = "Nuestros planes en pesos colombianos son: 'Landing Page' (desde $990.000 COP), 'Página Corporativa' ($1.980.000 COP) y 'Tienda Virtual' (¡En Promoción por $2.990.000 COP!). Adicionalmente, nuestra Academia LMS cuenta con contenido gratuito y niveles avanzados con suscripción. ¡Puedes realizar transferencias por Nequi o Bancolombia directamente!";
         } else if (query.includes("contacto") || query.includes("agenda") || query.includes("llamada") || query.includes("reun") || query.includes("asesor") || query.includes("escribir") || query.includes("correo")) {
-          reply = "¡Excelente iniciativa! Puedes agendar una asesoría comercial completando el formulario de contacto de esta página web, o escribiendo de manera directa al correo electrónico de Jose: josegregoriourdanetaguadama@gmail.com.";
+          reply = "¡Excelente iniciativa! Puedes agendar una asesoría comercial completando el formulario de contacto de esta página web, o escribiendo de manera directa a nuestro equipo.";
         } else if (query.includes("curso") || query.includes("aprender") || query.includes("clase") || query.includes("lms") || query.includes("academia")) {
-          reply = "La Academia LMS de Jose Urdaneta ofrece lecciones y guías sobre desarrollo frontend, backend, automatizaciones e Inteligencia Artificial. Regístrate de forma totalmente gratuita y accede al contenido de nivel Principiante de inmediato. Los niveles Intermedio y Avanzado se activan mediante suscripción.";
+          reply = "La Academia de Sinergia Agencia Creativa ofrece lecciones y guías sobre desarrollo frontend, backend, automatizaciones e infraestructura. Regístrate de forma totalmente gratuita y accede al contenido de nivel Principiante de inmediato. Los niveles Intermedio y Avanzado se activan mediante suscripción.";
         } else if (query.includes("gracias") || query.includes("ok") || query.includes("perfecto") || query.includes("bueno") || query.includes("excelente")) {
           reply = "¡Con mucho gusto! Estoy aquí para apoyarte. No olvides revisar el portafolio y los testimonios interactivos de clientes satisfechos.";
         }
@@ -100,15 +101,20 @@ export default function AiChatbot() {
             {/* Header section */}
             <div className="bg-primary dark:bg-black/40 px-5 py-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-white/10 dark:bg-primary/25 flex items-center justify-center text-white text-secondary">
-                  <Bot size={18} className="text-secondary" />
+                <div className="w-9 h-9 rounded-xl overflow-hidden ring-1 ring-secondary/50 p-0.5 bg-gradient-to-br from-primary to-secondary shrink-0">
+                  <img
+                    src={officialLogoImg}
+                    alt="Sinergia Logo"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover rounded-[10px]"
+                  />
                 </div>
                 <div>
                   <h4 className="font-heading font-extrabold text-sm text-white flex items-center gap-1">
-                    Urdaneta Sales AI
+                    Asistente Sinergia
                     <Sparkles size={12} className="text-secondary animate-pulse" />
                   </h4>
-                  <span className="text-[10px] font-mono text-gray-300">Google Gemini Powered Engine</span>
+                  <span className="text-[10px] font-mono text-gray-300">Asesor Comercial 24/7</span>
                 </div>
               </div>
 
@@ -143,7 +149,7 @@ export default function AiChatbot() {
                 <div className="flex justify-start">
                   <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl px-4 py-3 flex items-center gap-1.5 text-xs text-gray-400 font-mono">
                     <Loader2 size={12} className="animate-spin text-primary dark:text-secondary" />
-                    <span>Gemini analizando consulta...</span>
+                    <span>Sinergia procesando consulta...</span>
                   </div>
                 </div>
               )}

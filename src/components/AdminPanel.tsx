@@ -39,6 +39,17 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
   const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
   const [selectedVoucherImg, setSelectedVoucherImg] = useState<string | null>(null);
 
+  // Manual user creation modal state
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "student",
+    level: ""
+  });
+  const [isAddingUser, setIsAddingUser] = useState(false);
+
   // Editing items states
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -104,6 +115,88 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
+  };
+
+  const handleCreateUserManual = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUserForm.name || !newUserForm.email || !newUserForm.password) {
+      showToast("Nombre, Correo y Contraseña son obligatorios.");
+      return;
+    }
+    setIsAddingUser(true);
+    try {
+      const res = await fetch("/api/admin/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUserForm)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`Usuario ${data.user.name} registrado con éxito`);
+        setRegisteredUsers(prev => [data.user, ...prev]);
+        setShowAddUserModal(false);
+        setNewUserForm({ name: "", email: "", password: "", role: "student", level: "" });
+      } else {
+        showToast(data.error || "Error al crear el usuario");
+      }
+    } catch (err) {
+      console.warn("Fallback local create user:", err);
+      try {
+        const cached = localStorage.getItem("app_db_data");
+        const db = cached ? JSON.parse(cached) : initialData;
+        const newUser = {
+          id: "user_" + Date.now(),
+          name: newUserForm.name.trim(),
+          email: newUserForm.email.toLowerCase().trim(),
+          role: newUserForm.role || "student",
+          activeMembership: {
+            level: newUserForm.level || null,
+            expiresAt: newUserForm.level ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null
+          },
+          completedLessons: [],
+          createdAt: new Date().toISOString()
+        };
+        const updatedUsers = [newUser, ...(db.users || [])];
+        const newDb = { ...db, users: updatedUsers };
+        localStorage.setItem("app_db_data", JSON.stringify(newDb));
+        setRegisteredUsers(updatedUsers);
+        showToast(`Usuario ${newUser.name} creado localmente con éxito`);
+        setShowAddUserModal(false);
+        setNewUserForm({ name: "", email: "", password: "", role: "student", level: "" });
+        onDataUpdate();
+      } catch (e) {
+        showToast("Error de conexión");
+      }
+    } finally {
+      setIsAddingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async (userToDelete: any) => {
+    if (!window.confirm(`¿Estás seguro de eliminar permanentemente al usuario ${userToDelete.name} (${userToDelete.email})?`)) return;
+    try {
+      const res = await fetch(`/api/admin/users/${userToDelete.id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast(`Usuario ${userToDelete.name} eliminado con éxito`);
+        setRegisteredUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      console.warn("Fallback local delete user:", err);
+      try {
+        const cached = localStorage.getItem("app_db_data");
+        const db = cached ? JSON.parse(cached) : initialData;
+        const updatedUsers = (db.users || []).filter((u: any) => u.id !== userToDelete.id);
+        const newDb = { ...db, users: updatedUsers };
+        localStorage.setItem("app_db_data", JSON.stringify(newDb));
+        setRegisteredUsers(updatedUsers);
+        showToast(`Usuario ${userToDelete.name} eliminado localmente`);
+        onDataUpdate();
+      } catch (e) {
+        showToast("Error de conexión");
+      }
+    }
   };
 
   const handleSaveData = async (key: string, updatedData: any) => {
@@ -413,7 +506,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-primary dark:bg-secondary animate-pulse"></span>
             <span className="font-display font-bold text-base text-black dark:text-white">
-              JOSE URDANETA <span className="font-mono text-xs text-primary dark:text-secondary font-bold uppercase ml-2">Panel de Administración</span>
+              SINERGIA AGENCIA CREATIVA <span className="font-mono text-xs text-primary dark:text-secondary font-bold uppercase ml-2">Panel de Administración</span>
             </span>
           </div>
 
@@ -446,7 +539,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                   Ingreso Seguro de Ingeniería
                 </h3>
                 <p className="text-xs text-gray-500 font-mono uppercase tracking-widest mt-1">
-                  Acceso restringido a Jose Urdaneta
+                  Acceso restringido al Administrador
                 </p>
               </div>
 
@@ -585,7 +678,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                   </div>
 
                   <div className="p-6 border border-primary/20 dark:border-secondary/20 rounded-2xl bg-primary/5 dark:bg-primary/10">
-                    <h4 className="font-heading font-extrabold text-black dark:text-white text-lg">Nota de Acceso Directo de Jose</h4>
+                    <h4 className="font-heading font-extrabold text-black dark:text-white text-lg">Nota del Sistema</h4>
                     <p className="text-gray-600 dark:text-gray-300 font-light text-sm mt-2 leading-relaxed">
                       Este panel sincroniza todos los cambios directamente al archivo local <span className="font-mono bg-white dark:bg-neutral-950 px-1.5 py-0.5 rounded border">src/db.json</span> de tu servidor. Cualquier modificación realizada aquí modificará los datos de la web en tiempo real sin requerir recompilación del backend.
                     </p>
@@ -603,12 +696,20 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                         Controla las cuentas de alumnos, sus lecciones completadas y sus niveles de suscripción de pago (Nequi / Bancolombia / Stripe).
                       </p>
                     </div>
-                    <button
-                      onClick={fetchRegisteredUsers}
-                      className="px-4 py-2 self-start rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-black dark:text-white font-mono text-xs font-bold uppercase transition-colors"
-                    >
-                      Actualizar Alumnos
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                      <button
+                        onClick={() => setShowAddUserModal(true)}
+                        className="px-4 py-2 rounded-xl bg-primary hover:bg-opacity-90 text-white font-mono text-xs font-bold uppercase transition-all shadow-md shadow-primary/20 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus size={14} /> Registrar Usuario Manual
+                      </button>
+                      <button
+                        onClick={fetchRegisteredUsers}
+                        className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-black dark:text-white font-mono text-xs font-bold uppercase transition-colors cursor-pointer"
+                      >
+                        Actualizar
+                      </button>
+                    </div>
                   </div>
 
                   <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-3">
@@ -779,14 +880,14 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                                   <div className="flex items-center justify-end gap-1.5 flex-wrap">
                                     <button
                                       onClick={() => changeMembership(null)}
-                                      className="px-2 py-1.5 rounded-lg border border-gray-100 hover:bg-gray-100 dark:border-white/5 dark:hover:bg-white/10 text-[10px] font-mono font-bold uppercase text-gray-500"
+                                      className="px-2 py-1.5 rounded-lg border border-gray-100 hover:bg-gray-100 dark:border-white/5 dark:hover:bg-white/10 text-[10px] font-mono font-bold uppercase text-gray-500 cursor-pointer"
                                       title="Quitar membresía"
                                     >
                                       Remover
                                     </button>
                                     <button
                                       onClick={() => changeMembership("Principiante")}
-                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase ${
+                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase cursor-pointer ${
                                         level === "Principiante"
                                           ? "bg-blue-600 text-white"
                                           : "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
@@ -796,7 +897,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                                     </button>
                                     <button
                                       onClick={() => changeMembership("Intermedio")}
-                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase ${
+                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase cursor-pointer ${
                                         level === "Intermedio"
                                           ? "bg-[#0E5A5E] text-white"
                                           : "bg-[#0E5A5E]/10 text-[#0E5A5E] hover:bg-[#0E5A5E]/20"
@@ -806,13 +907,20 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                                     </button>
                                     <button
                                       onClick={() => changeMembership("Avanzado")}
-                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase ${
+                                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase cursor-pointer ${
                                         level === "Avanzado"
                                           ? "bg-[#F4B400] text-black"
                                           : "bg-[#F4B400]/10 text-[#F4B400] hover:bg-[#F4B400]/20"
                                       }`}
                                     >
                                       Avanzado
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteUser(u)}
+                                      className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors cursor-pointer"
+                                      title="Eliminar usuario permanentemente"
+                                    >
+                                      <Trash2 size={13} />
                                     </button>
                                   </div>
                                 </td>
@@ -832,7 +940,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                   <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
                     <div>
                       <h2 className="font-display font-extrabold text-2xl text-black dark:text-white">Servicios de la Agencia</h2>
-                      <p className="text-gray-500 font-light text-sm mt-1">Crea, edita o elimina las ofertas de servicios de Jose Urdaneta.</p>
+                      <p className="text-gray-500 font-light text-sm mt-1">Crea, edita o elimina las ofertas de servicios de Sinergia Agencia Creativa.</p>
                     </div>
                     <button
                       onClick={() => setEditingService({ id: "service_" + Date.now(), name: "", description: "", icon: "Globe", category: "Desarrollo" })}
@@ -1325,7 +1433,7 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
                         lessonsCount: 0,
                         image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
                         price: "$199 USD",
-                        instructor: "Jose Urdaneta",
+                        instructor: "Equipo Sinergia",
                         lessons: []
                       })}
                       className="px-4 py-2 rounded-xl bg-primary text-white font-mono font-bold text-xs uppercase flex items-center gap-1.5 hover:bg-opacity-95 cursor-pointer"
@@ -1664,6 +1772,144 @@ export default function AdminPanel({ onClose, initialData, onDataUpdate }: Admin
               <div className="text-center pt-3 text-xs font-mono text-gray-500">
                 <span>Comprobante cargado por el Alumno desde PC</span>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal - Registrar Usuario Manual "Con Todas de la Ley" */}
+      <AnimatePresence>
+        {showAddUserModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAddUserModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            ></motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-lg z-10 bg-white dark:bg-[#071d1f] rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-white/10 p-6 sm:p-8"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/5 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-primary/10 dark:bg-secondary/10 rounded-2xl text-primary dark:text-secondary">
+                    <Users size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-extrabold text-lg sm:text-xl text-black dark:text-white">
+                      Registrar Usuario Manual
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                      Creación directa con credenciales & membresía
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  className="p-2 text-gray-400 hover:text-black dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateUserManual} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-mono font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                    Nombre Completo del Usuario *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej. Juan Carlos Pérez"
+                    value={newUserForm.name}
+                    onChange={e => setNewUserForm({ ...newUserForm, name: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 text-black dark:text-white text-sm focus:outline-none focus:border-primary dark:focus:border-secondary transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                    Correo Electrónico *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="ejemplo@correo.com"
+                    value={newUserForm.email}
+                    onChange={e => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 text-black dark:text-white text-sm focus:outline-none focus:border-primary dark:focus:border-secondary transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                    Contraseña Inicial *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Escribe una contraseña segura"
+                    value={newUserForm.password}
+                    onChange={e => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 text-black dark:text-white text-sm focus:outline-none focus:border-primary dark:focus:border-secondary transition-all"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <label className="block text-xs font-mono font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                      Rol en la Plataforma
+                    </label>
+                    <select
+                      value={newUserForm.role}
+                      onChange={e => setNewUserForm({ ...newUserForm, role: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 text-black dark:text-white text-xs focus:outline-none focus:border-primary dark:focus:border-secondary cursor-pointer"
+                    >
+                      <option value="student">Alumno (Estudiante)</option>
+                      <option value="admin">Administrador (Admin)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                      Membresía Inicial
+                    </label>
+                    <select
+                      value={newUserForm.level}
+                      onChange={e => setNewUserForm({ ...newUserForm, level: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 text-black dark:text-white text-xs focus:outline-none focus:border-primary dark:focus:border-secondary cursor-pointer"
+                    >
+                      <option value="">Sin Membresía (Gratis)</option>
+                      <option value="Principiante">Nivel Principiante</option>
+                      <option value="Intermedio">Nivel Intermedio</option>
+                      <option value="Avanzado">Nivel Avanzado</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddUserModal(false)}
+                    className="px-5 py-2.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 text-xs font-mono uppercase font-bold transition-all cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isAddingUser}
+                    className="px-6 py-2.5 rounded-xl bg-primary hover:bg-opacity-90 text-white text-xs font-mono uppercase font-bold flex items-center gap-2 shadow-lg shadow-primary/20 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {isAddingUser ? "Registrando..." : "Crear Usuario"}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

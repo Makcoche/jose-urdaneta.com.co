@@ -315,7 +315,7 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
       priceUsd: "$25 USD",
       period: "por mes",
       level: "Intermedio" as const,
-      description: "El plan ideal para profesionales. Aprende a construir bots de WhatsApp reales con IA e integraciones CRM.",
+      description: "El plan ideal para profesionales. Aprende a construir bots de WhatsApp reales con integraciones CRM.",
       features: [
         "Acceso a cursos Principiante e Intermedio",
         "Acceso preferente al Aula Virtual",
@@ -338,7 +338,7 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
       features: [
         "Acceso ilimitado a TODOS los cursos",
         "Syllabus Avanzado de Desarrollo (Vite, React, SEO)",
-        "Mentoría técnica 1-a-1 mensual con Jose Urdaneta",
+        "Mentoría técnica 1-a-1 mensual con nuestro equipo senior",
         "Descarga libre de repositorios Git comerciales",
         "Soporte de desarrollo prioritario 24/7",
         "Certificación Elite avalada digitalmente"
@@ -357,7 +357,7 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 dark:bg-secondary/15 border border-primary/20 dark:border-secondary/20 rounded-full mb-4">
             <GraduationCap size={14} className="text-primary dark:text-secondary" />
             <span className="text-[10px] uppercase tracking-widest font-bold text-primary dark:text-secondary">
-              LMS - Academia Virtual Autoadministrable
+              Academia Virtual Autoadministrable
             </span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-heading font-extrabold text-gray-900 dark:text-white leading-tight mb-4">
@@ -845,7 +845,7 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
                       <>
                         <h5 className="font-heading font-extrabold text-xl text-gray-900 dark:text-white">¡Comprobante Registrado con Éxito!</h5>
                         <p className="text-xs text-gray-500 dark:text-white/70 leading-relaxed max-w-md mx-auto">
-                          Hemos recibido los datos de tu transferencia con el comprobante ingresado. El sistema ha registrado la matrícula en la cola autoadministrable de Jose Urdaneta.
+                          Hemos recibido los datos de tu transferencia con el comprobante ingresado. El sistema ha registrado la matrícula en la cola autoadministrable de Sinergia Agencia Creativa.
                         </p>
                         <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-[11px] text-emerald-600 dark:text-emerald-400 font-mono text-left space-y-1 max-w-sm mx-auto">
                           <span className="block font-bold">📌 Próximos pasos:</span>
@@ -1037,12 +1037,12 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
                               <div className="flex justify-between items-start">
                                 <div>
                                   <span className="text-[9px] font-mono text-gray-400 uppercase block">Celular Nequi</span>
-                                  <span className="text-xl font-mono font-black text-[#a074c4] block tracking-wider">300 123 4567</span>
-                                  <span className="text-[10px] text-gray-400 font-sans block mt-1">Beneficiario: Jose Urdaneta</span>
+                                  <span className="text-xl font-mono font-black text-[#a074c4] block tracking-wider">314 553 2957</span>
+                                  <span className="text-[10px] text-gray-400 font-sans block mt-1">Beneficiario: Sinergia Agencia Creativa</span>
                                 </div>
                                 <button
                                   type="button"
-                                  onClick={() => handleCopy("3001234567", "nequi")}
+                                  onClick={() => handleCopy("3145532957", "nequi")}
                                   className="px-2.5 py-1.5 bg-[#5b2482] hover:opacity-90 text-white rounded-lg text-[9px] font-mono font-bold flex items-center gap-1"
                                 >
                                   {copiedText === "nequi" ? <Check size={10} /> : <Copy size={10} />}
@@ -1059,7 +1059,7 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
                                 <div>
                                   <span className="text-[9px] font-mono text-gray-400 uppercase block">Cuenta de Ahorros Bancolombia</span>
                                   <span className="text-lg font-mono font-black text-white block tracking-wider">031-789456-12</span>
-                                  <span className="text-[10px] text-gray-400 font-sans block mt-1">Beneficiario: Jose Urdaneta</span>
+                                  <span className="text-[10px] text-gray-400 font-sans block mt-1">Beneficiario: Sinergia Agencia Creativa</span>
                                 </div>
                                 <button
                                   type="button"
@@ -1246,7 +1246,7 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
                   </div>
                   <div>
                     <h4 className="font-heading font-extrabold text-sm sm:text-base text-gray-900 dark:text-white">
-                      Aula Virtual de Jose Urdaneta
+                      Aula Virtual Sinergia
                     </h4>
                     <p className="text-[10px] font-mono text-gray-400">
                       Curso: {selectedCourse.title}
@@ -1324,7 +1324,7 @@ Fecha de Solicitud: ${new Date().toLocaleString()}`,
                             </div>
 
                             <div className="text-[10px] font-mono text-gray-400 text-center sm:text-right">
-                              Instructor: <span className="text-gray-900 dark:text-white font-bold">{selectedCourse.instructor || "Jose Urdaneta"}</span>
+                              Instructor: <span className="text-gray-900 dark:text-white font-bold">{selectedCourse.instructor || "Equipo Sinergia"}</span>
                             </div>
                           </div>
                         </div>

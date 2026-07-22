@@ -1,7 +1,19 @@
+import { MouseEvent } from "react";
 import { motion } from "motion/react";
 import { ArrowUpRight, ChevronRight, Laptop, Tablet, Smartphone, Sparkles } from "lucide-react";
+import officialLogoImg from "../assets/images/sinergia_official_logo_1784756544650.jpg";
 
-export default function Hero() {
+interface HeroProps {
+  onNavigate?: (page: string) => void;
+}
+
+export default function Hero({ onNavigate }: HeroProps) {
+  const handleLink = (page: string, e: MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(page);
+    }
+  };
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -67,7 +79,7 @@ export default function Hero() {
             variants={itemVariants}
             className="text-gray-600 dark:text-gray-300 text-lg sm:text-xl font-light leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10"
           >
-            Transformamos negocios tradicionales en marcas digitales mediante diseño web, automatización de WhatsApp e inteligencia artificial.
+            Transformamos negocios tradicionales en marcas digitales mediante diseño web, automatización de WhatsApp e infraestructura digital de alto rendimiento.
           </motion.p>
 
           {/* Call-to-actions */}
@@ -77,14 +89,16 @@ export default function Hero() {
           >
             <a
               href="#contacto"
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-primary text-white font-semibold text-base hover:bg-opacity-90 hover:scale-[1.03] active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2 shadow-xl shadow-primary/25"
+              onClick={(e) => handleLink("contacto", e)}
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-primary text-white font-semibold text-base hover:bg-opacity-90 hover:scale-[1.03] active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2 shadow-xl shadow-primary/25 cursor-pointer"
             >
               Solicitar Cotización
               <ChevronRight size={18} />
             </a>
             <a
               href="#portafolio"
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-transparent border-2 border-gray-200 dark:border-gray-800 text-black dark:text-white font-semibold text-base hover:bg-gray-50 dark:hover:bg-gray-900 transition-all text-center flex items-center justify-center gap-2"
+              onClick={(e) => handleLink("portafolio", e)}
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-transparent border-2 border-gray-200 dark:border-gray-800 text-black dark:text-white font-semibold text-base hover:bg-gray-50 dark:hover:bg-gray-900 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
             >
               Ver Portafolio
               <ArrowUpRight size={18} />
@@ -132,14 +146,17 @@ export default function Hero() {
                 <span className="w-2 h-2 rounded-full bg-red-500/80"></span>
                 <span className="w-2 h-2 rounded-full bg-yellow-500/80"></span>
                 <span className="w-2 h-2 rounded-full bg-green-500/80"></span>
-                <span className="text-[8px] font-mono text-gray-500 ml-2">joseurdaneta.com/preview</span>
+                <span className="text-[8px] font-mono text-gray-500 ml-2">sinergiagencia.com/preview</span>
               </div>
               
               {/* Screen Content - Mock Website Dashboard */}
               <div className="flex-1 bg-neutral-950 p-2 flex flex-col justify-between relative">
                 <div className="flex justify-between items-center pb-2 border-b border-gray-900">
-                  <span className="text-[10px] font-bold text-white tracking-wide font-display">URDANETA AI</span>
-                  <span className="text-[7px] px-2 py-0.5 rounded-full bg-primary/20 text-secondary border border-secondary/30 font-mono">CORE V5.1</span>
+                  <div className="flex items-center gap-1.5">
+                    <img src={officialLogoImg} alt="Sinergia Logo" referrerPolicy="no-referrer" className="w-3.5 h-3.5 rounded object-cover" />
+                    <span className="text-[10px] font-bold text-white tracking-wide font-display">SINERGIA CORE</span>
+                  </div>
+                  <span className="text-[7px] px-2 py-0.5 rounded-full bg-primary/20 text-secondary border border-secondary/30 font-mono font-bold">PRO V5.1</span>
                 </div>
                 
                 {/* Simulated charts/metrics on screen */}
@@ -228,7 +245,7 @@ export default function Hero() {
 
                 <div className="h-2 rounded bg-neutral-900 border border-gray-900 flex items-center px-1">
                   <div className="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse mr-1"></div>
-                  <span className="text-[4px] text-gray-500 font-mono">IA pensando respuestas...</span>
+                  <span className="text-[4px] text-gray-500 font-mono">Procesando respuestas...</span>
                 </div>
               </div>
             </motion.div>

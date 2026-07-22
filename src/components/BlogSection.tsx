@@ -11,7 +11,7 @@ export default function BlogSection({ posts }: BlogSectionProps) {
   const [activeCategory, setActiveCategory] = useState<string>("Todos");
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
 
-  const categories = ["Todos", "IA", "SEO", "Marketing", "Diseño", "Noticias"];
+  const categories = ["Todos", "Innovación", "SEO", "Marketing", "Diseño", "Noticias"];
 
   const filteredPosts = activeCategory === "Todos"
     ? posts
@@ -31,7 +31,7 @@ export default function BlogSection({ posts }: BlogSectionProps) {
           </h2>
           <div className="w-16 h-1 bg-primary dark:bg-secondary mx-auto rounded-full mb-5"></div>
           <p className="text-gray-600 dark:text-gray-400 font-light text-base">
-            Profundizamos en el estado de la tecnología web, metodologías de posicionamiento SEO y la implementación de Inteligencia Artificial para marcas innovadoras.
+            Profundizamos en el estado de la tecnología web, metodologías de posicionamiento SEO y estrategias digitales para marcas innovadoras.
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export default function BlogSection({ posts }: BlogSectionProps) {
                 <div className="p-8 sm:p-10 space-y-6">
                   {/* Author / Date Meta Bar */}
                   <div className="flex items-center justify-between text-xs text-gray-400 font-mono pb-4 border-b border-gray-100 dark:border-gray-800">
-                    <span className="flex items-center gap-1.5"><User size={12} /> Redactado por Jose Urdaneta</span>
+                    <span className="flex items-center gap-1.5"><User size={12} /> Redactado por Sinergia Agencia Creativa</span>
                     <span className="flex items-center gap-1.5"><Calendar size={12} /> {selectedPost.date}</span>
                   </div>
 
@@ -181,7 +181,7 @@ export default function BlogSection({ posts }: BlogSectionProps) {
                   {/* End signature */}
                   <div className="flex items-center gap-3">
                     <BookOpen size={20} className="text-primary dark:text-secondary" />
-                    <span className="text-xs font-mono text-gray-400 uppercase">Jose Urdaneta • Consulting Insight • All Rights Reserved</span>
+                    <span className="text-xs font-mono text-gray-400 uppercase">Sinergia Agencia Creativa • Consulting Insight • All Rights Reserved</span>
                   </div>
 
                 </div>

@@ -79,11 +79,11 @@ export default function SocialSection({ posts }: SocialSectionProps) {
                 <div className="flex items-center gap-2.5">
                   {/* Fake Avatar */}
                   <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white text-[10px] font-bold">
-                    JU
+                    SC
                   </div>
                   <div>
                     <span className="font-heading font-extrabold text-xs text-black dark:text-white block leading-none">
-                      joseurdaneta.ok
+                      sinergia.agenciacreativa
                     </span>
                     <span className="text-[9px] text-gray-400 font-mono mt-0.5 block">
                       {post.platform} Post
@@ -135,7 +135,7 @@ export default function SocialSection({ posts }: SocialSectionProps) {
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-light leading-relaxed line-clamp-3">
-                  <span className="font-bold mr-1 text-black dark:text-white">joseurdaneta.ok</span>
+                  <span className="font-bold mr-1 text-black dark:text-white">sinergia.agenciacreativa</span>
                   {post.caption}
                 </p>
 

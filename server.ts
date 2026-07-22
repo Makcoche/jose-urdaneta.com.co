@@ -214,6 +214,68 @@ async function startServer() {
     }
   });
 
+  // API: Admin - Create user manually "con todas de la ley"
+  app.post("/api/admin/users/create", async (req, res) => {
+    try {
+      const { name, email, password, role, level } = req.body;
+      if (!name || !email || !password) {
+        res.status(400).json({ error: "Nombre, Correo y Contraseña son requeridos." });
+        return;
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+      const db = await readDatabase();
+
+      const existingUser = db.users.find((u: any) => u.email.toLowerCase().trim() === normalizedEmail);
+      if (existingUser) {
+        res.status(400).json({ error: "El correo ya se encuentra registrado." });
+        return;
+      }
+
+      const newUser = {
+        id: "user_" + Date.now(),
+        name: name.trim(),
+        email: normalizedEmail,
+        passwordHash: hashPassword(password),
+        role: role || "student",
+        activeMembership: {
+          level: level || null,
+          expiresAt: level ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null
+        },
+        completedLessons: [],
+        createdAt: new Date().toISOString()
+      };
+
+      db.users.push(newUser);
+      await writeDatabase(db);
+
+      const { passwordHash, ...userResponse } = newUser;
+      res.json({ success: true, user: userResponse });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // API: Admin - Delete a user
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const db = await readDatabase();
+      const initialLength = db.users.length;
+      db.users = db.users.filter((u: any) => u.id !== userId);
+
+      if (db.users.length === initialLength) {
+        res.status(404).json({ error: "Usuario no encontrado." });
+        return;
+      }
+
+      await writeDatabase(db);
+      res.json({ success: true, message: "Usuario eliminado con éxito." });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // API: Submit a contact form / payment request
   app.post("/api/contact", async (req, res) => {
     try {
@@ -536,15 +598,45 @@ Plan: Membresía ${level}`,
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
-        // Safe simulated fallback if no API key is provided - prevents crashing & is highly contextual!
+        // High-fidelity intelligent consultant fallback (100% Free & instant response)
         console.log("No valid GEMINI_API_KEY found. Utilizing high-fidelity simulated consultant.");
-        const simulatedReplies = [
-          `¡Hola! Qué excelente iniciativa la de digitalizar y optimizar tu negocio. Para un proyecto de ${selectedService || 'Diseño Web'}, un presupuesto estimado de $${budget || '1500'} USD es un gran punto de partida. Podemos estructurar una Landing Page premium o una web corporativa optimizada para SEO con integración de WhatsApp automatizado. ¿Te gustaría agendar una llamada de 15 minutos para afinar los detalles técnicos?`,
-          `Me parece excelente. Con la automatización de WhatsApp y un chatbot de Inteligencia Artificial como los que desarrollamos para Jose Urdaneta, podemos captar leads las 24 horas y registrarlos en tu CRM de inmediato. ¿Deseas que te genere una cotización formal detallada en PDF para tu correo electrónico?`,
-          `Entendido. En Jose Urdaneta nos enfocamos en el lujo y el rendimiento excepcional. Tu proyecto contará con carga en menos de 1 segundo, diseño móvil UX/UI totalmente personalizado y un embudo de conversión impecable. ¿Hay alguna otra funcionalidad que consideres prioritaria?`
-        ];
-        const randomReply = simulatedReplies[Math.min(chatHistory?.length || 0, simulatedReplies.length - 1)];
-        res.json({ text: randomReply });
+        
+        const lowerMsg = (message || "").toLowerCase();
+        let reply = "";
+
+        if (lowerMsg.includes("precio") || lowerMsg.includes("costo") || lowerMsg.includes("presupuesto") || lowerMsg.includes("cuanto") || lowerMsg.includes("cuánto")) {
+          reply = `¡Hola! En **Sinergia Agencia Creativa** estructuramos cada solución a la medida de los objetivos de tu negocio:\n\n` +
+            `• **Landing Pages:** Desde $990.000 COP (diseño responsive, optimizado para conversión y formulario).\n` +
+            `• **Páginas Corporativas:** $1.980.000 COP (múltiples páginas, SEO avanzado, panel CMS autogestionable y automatización).\n` +
+            `• **Tienda Virtual (¡En Promoción!):** $2.990.000 COP (catálogo de productos, pasarelas de pago Nequi/Bancolombia/MercadoPago y chatbot IA).\n` +
+            `• **Agentes de IA y Chatbots:** Cotización personalizada.\n\n` +
+            `¿Tienes algún proyecto en mente para darte una asesoría exacta?`;
+        } else if (lowerMsg.includes("servicio") || lowerMsg.includes("hacen") || lowerMsg.includes("ofrecen") || lowerMsg.includes("que hacen") || lowerMsg.includes("qué hacen")) {
+          reply = `En **Sinergia Agencia Creativa** impulsamos tu marca con 4 pilares tecnológicos:\n\n` +
+            `1. **Diseño y Desarrollo Web de Lujo:** Páginas ultra-rápidas y optimizadas para conversión.\n` +
+            `2. **Automatización & Chatbots IA:** Asistentes 24/7 en WhatsApp, Instagram y Web que califican leads.\n` +
+            `3. **Marketing Digital & SEO:** Estrategias orientadas a posicionamiento en Google y captación de clientes.\n` +
+            `4. **Branding e Identidad Visual:** Creación de logotipos, manuales de marca y estética corporativa premium.\n\n` +
+            `¿Sobre cuál de estos servicios te gustaría recibir información detallada?`;
+        } else if (lowerMsg.includes("contacto") || lowerMsg.includes("hablar") || lowerMsg.includes("agendar") || lowerMsg.includes("reunion") || lowerMsg.includes("reunión") || lowerMsg.includes("whatsapp")) {
+          reply = `¡Excelente! Estaremos encantados de agendar una sesión de consultoría estratégica de 15 minutos sin costo.\n\n` +
+            `Puedes comunicarte directamente con nuestro equipo directivo vía WhatsApp al **+57 314 553 2957** o completar nuestro formulario de contacto más abajo en la web. ¿En qué horario te resultaría más cómodo reunirnos?`;
+        } else if (lowerMsg.includes("tiempo") || lowerMsg.includes("tardan") || lowerMsg.includes("duracion") || lowerMsg.includes("duración") || lowerMsg.includes("plazo")) {
+          reply = `Nuestros tiempos de entrega estándar son sumamente ágiles gracias a nuestra metodología de trabajo acelerada:\n\n` +
+            `• **Landing Page / Web Sencilla:** 5 a 7 días hábiles.\n` +
+            `• **Web Corporativa Completa:** 12 a 18 días hábiles.\n` +
+            `• **Chatbot de IA / Automatización:** 3 a 5 días hábiles.\n\n` +
+            `¿Para qué fecha te gustaría tener tu proyecto 100% operativo?`;
+        } else {
+          const simulatedReplies = [
+            `¡Hola! Qué excelente iniciativa la de digitalizar y optimizar tu negocio. Para un proyecto de ${selectedService || 'Diseño Web'}, un presupuesto estimado de $${budget || '500'} USD es un gran punto de partida. Podemos estructurar una plataforma premium optimizada para SEO con integración de WhatsApp automatizado. ¿Te gustaría agendar una llamada de 15 minutos para afinar los detalles técnicos?`,
+            `Me parece una excelente oportunidad. Con las automatizaciones comerciales y los asistentes conversacionales de Inteligencia Artificial que desarrollamos en Sinergia Agencia Creativa, captamos y calificamos clientes las 24 horas del día. ¿Te gustaría conocer algunos de nuestros casos de éxito recientes?`,
+            `Entendido. En Sinergia Agencia Creativa nos enfocamos en el rendimiento excepcional, diseño de lujo y carga ultrarrápida. Tu proyecto contará con una experiencia móvil impecable. ¿Hay alguna otra funcionalidad específica que consideres prioritaria?`
+          ];
+          reply = simulatedReplies[Math.min(chatHistory?.length || 0, simulatedReplies.length - 1)];
+        }
+
+        res.json({ text: reply });
         return;
       }
 
@@ -563,7 +655,7 @@ Plan: Membresía ${level}`,
       const portfolioContext = JSON.stringify(db.portfolio);
 
       const systemInstruction = `
-        Actúas como el Consultor de Ventas Avanzado con IA para la agencia premium de "JOSE URDANETA | Diseño Web • Automatización • Marketing Digital".
+        Actúas como el Consultor de Ventas Avanzado para la agencia premium de "SINERGIA AGENCIA CREATIVA | Diseño Web • Automatización • Marketing Digital".
         Tu objetivo es atender a posibles clientes con un tono extremadamente corporativo, profesional, seguro, elegante y persuasivo (vendedor consultor digital experto, al nivel de agencias internacionales como Apple o Stripe).
         
         SERVICIOS QUE OFRECEMOS:
@@ -600,7 +692,7 @@ Plan: Membresía ${level}`,
       });
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.6-flash",
         contents: formattedContents,
         config: {
           systemInstruction,

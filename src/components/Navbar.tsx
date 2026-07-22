@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, MouseEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X, Sun, Moon, Lock, ArrowRight } from "lucide-react";
+import Logo from "./Logo";
 
 interface NavbarProps {
   darkMode: boolean;
   setDarkMode: (val: boolean) => void;
   openAdmin: () => void;
+  activePage: string;
+  onNavigate: (page: string) => void;
 }
 
-export default function Navbar({ darkMode, setDarkMode, openAdmin }: NavbarProps) {
+export default function Navbar({ darkMode, setDarkMode, openAdmin, activePage, onNavigate }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -21,15 +24,21 @@ export default function Navbar({ darkMode, setDarkMode, openAdmin }: NavbarProps
   }, []);
 
   const navLinks = [
-    { name: "Inicio", href: "#inicio" },
-    { name: "Servicios", href: "#servicios" },
-    { name: "Portafolio", href: "#portafolio" },
-    { name: "Proceso", href: "#proceso" },
-    { name: "Academia", href: "#academia" },
-    { name: "Planes", href: "#planes" },
-    { name: "Blog", href: "#blog" },
-    { name: "Contacto", href: "#contacto" },
+    { name: "Inicio", id: "inicio" },
+    { name: "Servicios", id: "servicios" },
+    { name: "Portafolio", id: "portafolio" },
+    { name: "Proceso", id: "proceso" },
+    { name: "Academia", id: "academia" },
+    { name: "Planes", id: "planes" },
+    { name: "Blog", id: "blog" },
+    { name: "Contacto", id: "contacto" },
   ];
+
+  const handleLinkClick = (id: string, e: MouseEvent) => {
+    e.preventDefault();
+    onNavigate(id);
+    setIsOpen(false);
+  };
 
   return (
     <motion.nav
@@ -39,33 +48,41 @@ export default function Navbar({ darkMode, setDarkMode, openAdmin }: NavbarProps
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? "py-3 glass-panel shadow-md backdrop-blur-xl"
-          : "py-6 bg-transparent"
+          : "py-5 sm:py-6 bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        {/* Elegant Logo */}
-        <a href="#inicio" className="flex flex-col select-none group">
-          <span className="font-display font-bold text-xl tracking-wider text-black dark:text-white flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-primary rounded-xs transform rotate-45 group-hover:rotate-180 group-hover:bg-secondary transition-all duration-500"></span>
-            JOSE URDANETA
-          </span>
-          <span className="text-[9px] font-mono tracking-[0.2em] text-primary dark:text-secondary font-semibold uppercase leading-none mt-0.5">
-            DISEÑO WEB • AUTOMATIZACIÓN
-          </span>
-        </a>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        {/* Elegant Logo with clear right separation to avoid colliding with Inicio */}
+        <div className="flex items-center shrink-0 mr-6 lg:mr-12 xl:mr-16">
+          <a href="#inicio" onClick={(e) => handleLinkClick("inicio", e)} className="shrink-0">
+            <Logo size="md" />
+          </a>
+          {/* Subtle Vertical Divider between Logo and Navigation */}
+          <div className="hidden lg:block h-6 w-[1px] bg-gray-200/80 dark:bg-gray-800 ml-6 xl:ml-10 shrink-0"></div>
+        </div>
 
-        {/* Desktop Links */}
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary transition-colors relative group py-1"
-            >
-              {link.name}
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-primary dark:bg-secondary transition-all duration-300 group-hover:w-full"></span>
-            </a>
-          ))}
+        {/* Desktop Links with generous breathing room */}
+        <div className="hidden lg:flex items-center gap-4 xl:gap-7 2xl:gap-9">
+          {navLinks.map((link) => {
+            const isActive = activePage === link.id;
+            return (
+              <a
+                key={link.name}
+                href={`#${link.id}`}
+                onClick={(e) => handleLinkClick(link.id, e)}
+                className={`text-xs xl:text-sm font-semibold transition-colors relative group py-1 ${
+                  isActive
+                    ? "text-primary dark:text-secondary font-extrabold"
+                    : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-secondary"
+                }`}
+              >
+                {link.name}
+                <span className={`absolute bottom-0 left-0 h-[2px] bg-primary dark:bg-secondary transition-all duration-300 ${
+                  isActive ? "w-full" : "w-0 group-hover:w-full"
+                }`}></span>
+              </a>
+            );
+          })}
         </div>
 
         {/* Utility Actions */}
@@ -92,6 +109,7 @@ export default function Navbar({ darkMode, setDarkMode, openAdmin }: NavbarProps
           {/* Quote CTA Button */}
           <a
             href="#contacto"
+            onClick={(e) => handleLinkClick("contacto", e)}
             className="px-5 py-2.5 rounded-full bg-primary text-white font-medium text-sm hover:bg-opacity-90 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group shadow-lg shadow-primary/20"
           >
             Solicitar Cotización
@@ -141,9 +159,13 @@ export default function Navbar({ darkMode, setDarkMode, openAdmin }: NavbarProps
               {navLinks.map((link) => (
                 <a
                   key={link.name}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="text-base font-semibold text-gray-800 dark:text-gray-100 hover:text-primary dark:hover:text-secondary transition-colors"
+                  href={`#${link.id}`}
+                  onClick={(e) => handleLinkClick(link.id, e)}
+                  className={`text-base font-semibold transition-colors ${
+                    activePage === link.id
+                      ? "text-primary dark:text-secondary font-extrabold"
+                      : "text-gray-800 dark:text-gray-100 hover:text-primary dark:hover:text-secondary"
+                  }`}
                 >
                   {link.name}
                 </a>
@@ -151,7 +173,7 @@ export default function Navbar({ darkMode, setDarkMode, openAdmin }: NavbarProps
               <div className="h-[1px] bg-gray-100 dark:bg-gray-800 my-2"></div>
               <a
                 href="#contacto"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => handleLinkClick("contacto", e)}
                 className="w-full text-center px-6 py-3 rounded-full bg-primary text-white font-medium text-sm flex items-center justify-center gap-2"
               >
                 Solicitar Cotización

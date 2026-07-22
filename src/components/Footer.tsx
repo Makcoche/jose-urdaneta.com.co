@@ -1,9 +1,22 @@
+import { MouseEvent } from "react";
 import { motion } from "motion/react";
 import { Instagram, Facebook, Youtube, Linkedin, ArrowUp, Send, Heart } from "lucide-react";
+import Logo from "./Logo";
 
-export default function Footer() {
+interface FooterProps {
+  onNavigate?: (page: string) => void;
+}
+
+export default function Footer({ onNavigate }: FooterProps) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleLink = (page: string, e: MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(page);
+    }
   };
 
   return (
@@ -12,17 +25,11 @@ export default function Footer() {
         
         {/* Brand Column */}
         <div className="md:col-span-5 space-y-4">
-          <a href="#inicio" className="flex flex-col select-none group">
-            <span className="font-display font-bold text-xl tracking-wider text-black dark:text-white flex items-center gap-1.5">
-              <span className="inline-block w-3 h-3 bg-primary rounded-xs transform rotate-45 group-hover:rotate-180 transition-all duration-500"></span>
-              JOSE URDANETA
-            </span>
-            <span className="text-[9px] font-mono tracking-[0.2em] text-primary dark:text-secondary font-semibold uppercase leading-none mt-0.5">
-              DISEÑO WEB • AUTOMATIZACIÓN
-            </span>
+          <a href="#inicio" onClick={(e) => handleLink("inicio", e)} className="inline-block">
+            <Logo size="lg" />
           </a>
           <p className="text-gray-500 dark:text-gray-400 font-light text-sm max-w-sm leading-relaxed">
-            Creamos marcas digitales de clase mundial, integrando diseño disruptivo, chatbots de inteligencia artificial y automatizaciones comerciales de alta gama.
+            Creamos marcas digitales de clase mundial, integrando diseño disruptivo, chatbots conversacionales y automatizaciones comerciales de alta gama.
           </p>
           
           {/* Social Platforms Row */}
@@ -55,11 +62,11 @@ export default function Footer() {
             Enlaces Rápidos
           </h4>
           <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400 font-light">
-            <li><a href="#inicio" className="hover:text-primary dark:hover:text-secondary transition-colors">Inicio</a></li>
-            <li><a href="#servicios" className="hover:text-primary dark:hover:text-secondary transition-colors">Servicios</a></li>
-            <li><a href="#portafolio" className="hover:text-primary dark:hover:text-secondary transition-colors">Portafolio</a></li>
-            <li><a href="#proceso" className="hover:text-primary dark:hover:text-secondary transition-colors">Proceso comercial</a></li>
-            <li><a href="#planes" className="hover:text-primary dark:hover:text-secondary transition-colors">Nuestros Planes</a></li>
+            <li><a href="#inicio" onClick={(e) => handleLink("inicio", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Inicio</a></li>
+            <li><a href="#servicios" onClick={(e) => handleLink("servicios", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Servicios</a></li>
+            <li><a href="#portafolio" onClick={(e) => handleLink("portafolio", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Portafolio</a></li>
+            <li><a href="#proceso" onClick={(e) => handleLink("proceso", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Proceso comercial</a></li>
+            <li><a href="#planes" onClick={(e) => handleLink("planes", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Nuestros Planes</a></li>
           </ul>
         </div>
 
@@ -69,8 +76,9 @@ export default function Footer() {
             Información & Legal
           </h4>
           <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400 font-light">
-            <li><a href="#blog" className="hover:text-primary dark:hover:text-secondary transition-colors">Blog & Noticias</a></li>
-            <li><a href="#faq" className="hover:text-primary dark:hover:text-secondary transition-colors">Preguntas Frecuentes</a></li>
+            <li><a href="#academia" onClick={(e) => handleLink("academia", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Academia Sinergia</a></li>
+            <li><a href="#blog" onClick={(e) => handleLink("blog", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Blog & Noticias</a></li>
+            <li><a href="#contacto" onClick={(e) => handleLink("contacto", e)} className="hover:text-primary dark:hover:text-secondary transition-colors">Contacto & Cotización</a></li>
             <li><span className="cursor-not-allowed opacity-50">Términos de Servicio</span></li>
             <li><span className="cursor-not-allowed opacity-50">Políticas de Privacidad</span></li>
           </ul>
@@ -93,7 +101,7 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 font-mono gap-4">
         <div>
-          <span>© 2026 JOSE URDANETA. Todos los derechos reservados.</span>
+          <span>© 2026 SINERGIA AGENCIA CREATIVA. Todos los derechos reservados.</span>
         </div>
         <div className="flex items-center gap-1">
           <span>Hecho con</span>
